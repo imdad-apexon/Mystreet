@@ -1,0 +1,13 @@
+﻿global using Xunit;
+global using Moq;
+global using FluentAssertions;
+global using Microsoft.EntityFrameworkCore;
+global using Mystreet.Domain.Entities;
+global using Mystreet.Domain.Enums;
+global using Mystreet.Application.DTOs.Auth;
+global using Mystreet.Application.DTOs.Products;
+global using Mystreet.Application.DTOs.Orders;
+global using Mystreet.Application.Interfaces;
+global using Mystreet.Application.Services;
+global using Mystreet.Infrastructure.Auth;
+global using Mystreet.Infrastructure.Data;

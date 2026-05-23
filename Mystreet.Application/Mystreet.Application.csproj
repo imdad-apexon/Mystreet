@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Folder Include="Validators\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Mystreet.Domain\Mystreet.Domain.csproj" />
+    <ProjectReference Include="..\Mystreet.Infrastructure\Mystreet.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>
