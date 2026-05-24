@@ -52,6 +52,7 @@ app.UseSwagger();
 app.UseSwaggerUI();
 app.UseMiddleware<Mystreet.Api.Middleware.ExceptionMiddleware>();
 app.UseCors("AllowFrontend");
+app.UseStaticFiles(); // Enable static files
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

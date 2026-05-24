@@ -15,4 +15,9 @@
     <ProjectReference Include="..\Mystreet.Application\Mystreet.Application.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="wwwroot\Resources\ProductImages\1.png" />
+    <None Include="wwwroot\Resources\ProductImages\2.png" />
+  </ItemGroup>
+
 </Project>

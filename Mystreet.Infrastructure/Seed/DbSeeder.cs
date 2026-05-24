@@ -22,8 +22,8 @@ public static class DbSeeder
         if (!db.Products.Any())
         {
             db.Products.AddRange(
-                new Product { Id = Guid.NewGuid(), Name = "Air Max 90", Brand = "Nike", Description = "Classic sneaker", Price = 119.99m, SizesCsv = "7,8,9,10", StockQty = 50, ImageUrl = "https://picsum.photos/400?1", Category = "Sneakers" },
-                new Product { Id = Guid.NewGuid(), Name = "Ultraboost", Brand = "Adidas", Description = "Comfort running shoe", Price = 139.99m, SizesCsv = "7,8,9,10,11", StockQty = 35, ImageUrl = "https://picsum.photos/400?2", Category = "Sneakers" }
+                new Product { Id = Guid.NewGuid(), Name = "Air Max 90", Brand = "Nike", Description = "Classic sneaker", Price = 119.99m, SizesCsv = "7,8,9,10", StockQty = 50, ImageUrl = "Resources/ProductImages/1.png", Category = "Sneakers" },
+                new Product { Id = Guid.NewGuid(), Name = "Ultraboost", Brand = "Adidas", Description = "Comfort running shoe", Price = 139.99m, SizesCsv = "7,8,9,10,11", StockQty = 35, ImageUrl = "Resources/ProductImages/2.png", Category = "Sneakers" }
             );
         }
 
