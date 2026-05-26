@@ -65,7 +65,15 @@ public class OrderService : IOrderService
                 x.Id,
                 x.Status,
                 x.TotalAmount,
-                x.CreatedAt
+                x.CreatedAt,
+                Items = x.Items.Select(i => new
+                {
+                    i.ProductId,
+                    i.ProductName,
+                    i.Size,
+                    i.Quantity,
+                    i.UnitPrice
+                })
             })
             .ToListAsync();
     }
@@ -109,6 +117,42 @@ public class OrderService : IOrderService
         if (order.Status == OrderStatus.Delivered) throw new InvalidOperationException("Delivered orders cannot be cancelled.");
 
         order.Status = OrderStatus.Cancelled;
+        await _db.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<IEnumerable<object>> GetAllAsync()
+    {
+        return await _db.Orders
+            .Include(x => x.User)
+            .OrderByDescending(x => x.CreatedAt)
+            .Select(x => new
+            {
+                x.Id,
+                x.Status,
+                x.TotalAmount,
+                x.CreatedAt,
+                x.ShippingAddress,
+                x.PaymentMethod,
+                CustomerEmail = x.User != null ? x.User.Email : null,
+                Items = x.Items.Select(i => new
+                {
+                    i.ProductId,
+                    i.ProductName,
+                    i.Size,
+                    i.Quantity,
+                    i.UnitPrice
+                })
+            })
+            .ToListAsync();
+    }
+
+    public async Task<bool> UpdateStatusAsync(Guid orderId, OrderStatus status)
+    {
+        var order = await _db.Orders.FirstOrDefaultAsync(x => x.Id == orderId);
+        if (order is null) return false;
+
+        order.Status = status;
         await _db.SaveChangesAsync();
         return true;
     }

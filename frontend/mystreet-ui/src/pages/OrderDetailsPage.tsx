@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { orderService } from '../services/orderService';
+import { getOrderStatusLabel, getOrderStatusStyle } from '../utils/orderStatus';
 
 export default function OrderDetailsPage() {
   const { id } = useParams();
@@ -16,7 +17,7 @@ export default function OrderDetailsPage() {
     <div className="container">
       <h1>Order Details</h1>
       <p>Order ID: {order.id}</p>
-      <p>Status: {order.status}</p>
+      <p>Status: <span style={getOrderStatusStyle(order.status)}>{getOrderStatusLabel(order.status)}</span></p>
       <p>Total: ₹{order.totalAmount}</p>
       <p>Address: {order.shippingAddress}</p>
       <div className="list">

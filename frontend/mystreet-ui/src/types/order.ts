@@ -11,4 +11,5 @@ export type Order = {
   status: string;
   totalAmount: number;
   createdAt: string;
+  items?: OrderItem[];
 };

@@ -16,5 +16,12 @@ export const orderService = {
   },
   cancel: async (id: string) => {
     await api.post(`/orders/${id}/cancel`);
+  },
+  all: async () => {
+    const res = await api.get<any[]>('/orders/all');
+    return res.data;
+  },
+  updateStatus: async (id: string, status: number) => {
+    await api.put(`/orders/${id}/status`, { status });
   }
 };
