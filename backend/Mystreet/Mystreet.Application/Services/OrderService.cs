@@ -65,7 +65,18 @@ public class OrderService : IOrderService
                 x.Id,
                 x.Status,
                 x.TotalAmount,
-                x.CreatedAt
+                x.CreatedAt,
+                x.ShippingAddress,
+                x.PaymentMethod,
+                Items = x.Items.Select(i => new
+                {
+                    i.ProductId,
+                    i.ProductName,
+                    i.Size,
+                    i.Quantity,
+                    i.UnitPrice,
+                    ImageUrl = i.Product != null ? i.Product.ImageUrl : null
+                })
             })
             .ToListAsync();
     }
@@ -94,7 +105,8 @@ public class OrderService : IOrderService
                 x.ProductName,
                 x.Size,
                 x.Quantity,
-                x.UnitPrice
+                x.UnitPrice,
+                ImageUrl = x.Product != null ? x.Product.ImageUrl : null
             })
         };
     }
@@ -109,6 +121,44 @@ public class OrderService : IOrderService
         if (order.Status == OrderStatus.Delivered) throw new InvalidOperationException("Delivered orders cannot be cancelled.");
 
         order.Status = OrderStatus.Cancelled;
+        await _db.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<IEnumerable<object>> GetAllAsync()
+    {
+        return await _db.Orders
+            .Include(x => x.User)
+            .Include(x => x.Items).ThenInclude(i => i.Product)
+            .OrderByDescending(x => x.CreatedAt)
+            .Select(x => new
+            {
+                x.Id,
+                x.Status,
+                x.TotalAmount,
+                x.CreatedAt,
+                x.ShippingAddress,
+                x.PaymentMethod,
+                CustomerEmail = x.User != null ? x.User.Email : null,
+                Items = x.Items.Select(i => new
+                {
+                    i.ProductId,
+                    i.ProductName,
+                    i.Size,
+                    i.Quantity,
+                    i.UnitPrice,
+                    ImageUrl = i.Product != null ? i.Product.ImageUrl : null
+                })
+            })
+            .ToListAsync();
+    }
+
+    public async Task<bool> UpdateStatusAsync(Guid orderId, OrderStatus status)
+    {
+        var order = await _db.Orders.FirstOrDefaultAsync(x => x.Id == orderId);
+        if (order is null) return false;
+
+        order.Status = status;
         await _db.SaveChangesAsync();
         return true;
     }

@@ -45,4 +45,18 @@ public class OrdersController : ControllerBase
         var isAdmin = User.HasClaim("isAdmin", "true");
         return await _service.CancelAsync(userId, id, isAdmin) ? Ok() : NotFound();
     }
+
+    [HttpGet("all")]
+    public async Task<IActionResult> All()
+    {
+        if (!User.HasClaim("isAdmin", "true")) return Forbid();
+        return Ok(await _service.GetAllAsync());
+    }
+
+    [HttpPut("{id}/status")]
+    public async Task<IActionResult> UpdateStatus(Guid id, UpdateOrderStatusDto dto)
+    {
+        if (!User.HasClaim("isAdmin", "true")) return Forbid();
+        return await _service.UpdateStatusAsync(id, dto.Status) ? Ok() : NotFound();
+    }
 }
