@@ -66,13 +66,16 @@ public class OrderService : IOrderService
                 x.Status,
                 x.TotalAmount,
                 x.CreatedAt,
+                x.ShippingAddress,
+                x.PaymentMethod,
                 Items = x.Items.Select(i => new
                 {
                     i.ProductId,
                     i.ProductName,
                     i.Size,
                     i.Quantity,
-                    i.UnitPrice
+                    i.UnitPrice,
+                    ImageUrl = i.Product != null ? i.Product.ImageUrl : null
                 })
             })
             .ToListAsync();
@@ -102,7 +105,8 @@ public class OrderService : IOrderService
                 x.ProductName,
                 x.Size,
                 x.Quantity,
-                x.UnitPrice
+                x.UnitPrice,
+                ImageUrl = x.Product != null ? x.Product.ImageUrl : null
             })
         };
     }

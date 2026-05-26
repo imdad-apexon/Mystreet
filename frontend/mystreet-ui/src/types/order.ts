@@ -4,12 +4,15 @@ export type OrderItem = {
   size: string;
   quantity: number;
   unitPrice: number;
+  imageUrl?: string | null;
 };
 
 export type Order = {
   id: string;
-  status: string;
+  status: number | string;
   totalAmount: number;
   createdAt: string;
+  shippingAddress?: string;
+  paymentMethod?: string;
   items?: OrderItem[];
 };
