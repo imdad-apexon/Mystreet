@@ -126,7 +126,14 @@ export default function AdminOrdersPage() {
                         onError={e => ((e.target as HTMLImageElement).style.visibility = 'hidden')}
                       />
                     ) : (
-                      <div className="order-item__placeholder">No image</div>
+                        <div className="order-item__placeholder">
+                          <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ marginRight: 6 }}>
+                            <rect x="2" y="2" width="28" height="28" rx="6" fill="#e7e7e7"/>
+                            <path d="M8 22l5-6 4 5 3-4 4 5" stroke="#b0b0b0" strokeWidth="2" fill="none"/>
+                            <circle cx="11" cy="11" r="2" fill="#b0b0b0"/>
+                          </svg>
+                          No image
+                        </div>
                     )}
                     <div className="order-item__info">
                       <Link to={`/products/${i.productId}`} className="name">

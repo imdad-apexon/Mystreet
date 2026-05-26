@@ -129,6 +129,7 @@ public class OrderService : IOrderService
     {
         return await _db.Orders
             .Include(x => x.User)
+            .Include(x => x.Items).ThenInclude(i => i.Product)
             .OrderByDescending(x => x.CreatedAt)
             .Select(x => new
             {
@@ -145,7 +146,8 @@ public class OrderService : IOrderService
                     i.ProductName,
                     i.Size,
                     i.Quantity,
-                    i.UnitPrice
+                    i.UnitPrice,
+                    ImageUrl = i.Product != null ? i.Product.ImageUrl : null
                 })
             })
             .ToListAsync();
