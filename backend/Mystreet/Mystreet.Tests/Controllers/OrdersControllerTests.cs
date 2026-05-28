@@ -1,9 +1,26 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿
+using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Http;
+using Mystreet.Api.Controllers;
 
 namespace Mystreet.Tests.Controllers;
 
 public class OrdersControllerTests
 {
-    // Mine test skipped - requires proper authorization context with User claims
-    // The controller method requires [Authorize] and user context which is framework responsibility
+    [Fact]
+    public async Task Mine_ShouldReturnOk_WhenAuthorized()
+    {
+        var service = new Mock<IOrderService>();
+        service.Setup(x => x.GetMineAsync(It.IsAny<Guid>()))
+            .ReturnsAsync(new List<object>());
+
+        var controller = new Mystreet.Api.Controllers.OrdersController(service.Object);
+
+        controller.ControllerContext = new ControllerContext();
+
+        var result = await controller.Mine();
+
+        result.Should().BeOfType<OkObjectResult>();
+    }
 }

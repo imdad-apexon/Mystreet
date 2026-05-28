@@ -20,6 +20,7 @@ export default function Navbar() {
                 {isAuthenticated && <Link to="/">Products </Link>}
         {isAuthenticated && <Link to="/orders">Orders</Link>}
         {isAdmin && <Link to="/admin/products">Admin</Link>}
+        {isAdmin && <Link to="/admin/orders">Admin Orders</Link>}
         {!isAuthenticated ? (
           <>
             <Link to="/login">Login</Link>
