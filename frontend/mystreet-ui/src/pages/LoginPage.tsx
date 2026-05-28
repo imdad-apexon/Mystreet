@@ -16,7 +16,7 @@ export default function LoginPage() {
     if (!email || !password) return setError('All fields are required.');
     try {
       await login(email, password);
-      navigate('/');
+      setTimeout(() => navigate('/'), 100);
     } catch {
       setError('Invalid credentials.');
     }
