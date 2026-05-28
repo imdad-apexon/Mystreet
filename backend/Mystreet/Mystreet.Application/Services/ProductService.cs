@@ -11,12 +11,15 @@ public class ProductService : IProductService
     private readonly AppDbContext _db;
     public ProductService(AppDbContext db) => _db = db;
 
-    public async Task<IEnumerable<ProductDto>> GetAllAsync(string? brand, string? size, decimal? minPrice, decimal? maxPrice)
+    public async Task<IEnumerable<ProductDto>> GetAllAsync(string? brand, string? size, string? category, decimal? minPrice, decimal? maxPrice)
     {
         var query = _db.Products.AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(brand))
             query = query.Where(x => x.Brand == brand);
+
+        if (!string.IsNullOrWhiteSpace(category))
+            query = query.Where(x => x.Category == category);
 
         if (!string.IsNullOrWhiteSpace(size))
             query = query.Where(x => x.SizesCsv.Contains(size));

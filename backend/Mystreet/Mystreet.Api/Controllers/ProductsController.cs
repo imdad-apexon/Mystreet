@@ -14,12 +14,15 @@ public class ProductsController : ControllerBase
     public ProductsController(IProductService service) => _service = service;
 
     [HttpGet]
-    public async Task<IActionResult> GetAll([FromQuery] string? brand, [FromQuery] string? size, [FromQuery] decimal? minPrice, [FromQuery] decimal? maxPrice)
-        => Ok(await _service.GetAllAsync(brand, size, minPrice, maxPrice));
+    public async Task<IActionResult> GetAll([FromQuery] string? brand, [FromQuery] string? size, [FromQuery] string? category, [FromQuery] decimal? minPrice, [FromQuery] decimal? maxPrice)
+        => Ok(await _service.GetAllAsync(brand, size, category, minPrice, maxPrice));
 
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(Guid id)
-        => Ok(await _service.GetByIdAsync(id));
+    {
+        var product = await _service.GetByIdAsync(id);
+        return product is null ? NotFound() : Ok(product);
+    }
 
     [Authorize]
     [HttpPost]

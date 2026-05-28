@@ -2,7 +2,7 @@ import api from './api';
 import type { Product } from '../types/product';
 
 export const productService = {
-  getAll: async (params?: { brand?: string; size?: string; minPrice?: number; maxPrice?: number }) => {
+  getAll: async (params?: { brand?: string; size?: string; category?: string; minPrice?: number; maxPrice?: number }) => {
     const res = await api.get<Product[]>('/products', { params });
     return res.data;
   },
