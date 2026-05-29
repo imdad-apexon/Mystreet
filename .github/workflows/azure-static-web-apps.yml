@@ -8,7 +8,6 @@ on:
 jobs:
   build_and_deploy_job:
     runs-on: ubuntu-latest
-    name: Build and Deploy Job
 
     steps:
       - uses: actions/checkout@v4
@@ -20,6 +19,6 @@ jobs:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: "upload"
 
-          app_location: "./frontend/mystreet-ui"
+          app_location: "frontend/mystreet-ui"
           api_location: ""
           output_location: "dist"
