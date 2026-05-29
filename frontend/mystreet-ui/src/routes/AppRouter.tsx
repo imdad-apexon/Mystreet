@@ -23,6 +23,7 @@ export default function AppRouter() {
   return (
     <Routes>
       <Route path="/" element={<RootRoute />} />
+      <Route path="/products" element={<HomePage />} />
       <Route path="/products/:id" element={<ProductDetailPage />} />
       <Route path="/cart" element={<CartPage />} />
       <Route path="/login" element={<LoginPage />} />
