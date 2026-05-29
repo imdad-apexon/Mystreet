@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
@@ -9,6 +9,10 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+
+   useEffect(() => {
+    document.title = 'MyStreet - Login';
+  }, []);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
