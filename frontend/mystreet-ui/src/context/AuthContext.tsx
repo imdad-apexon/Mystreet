@@ -34,12 +34,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const register = async (email: string, password: string) => {
-    const res = await authService.register(email, password);
-    const u: User = { userId: res.userId, email: res.email, isAdmin: res.isAdmin };
-    setUser(u);
-    setToken(res.token);
-    storage.setUser(u);
-    storage.setToken(res.token);
+    await authService.register(email, password);
+    // Account created successfully, but don't log in - user must login manually
   };
 
   const logout = () => {

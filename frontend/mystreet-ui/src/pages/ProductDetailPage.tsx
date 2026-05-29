@@ -40,20 +40,48 @@ export default function ProductDetailPage() {
   };
 
   return (
-    <div className="container detail">
-      <img src={getImageUrl(product.imageUrl)} alt={product.name} />
-      <div>
-        <h2>{product.name}</h2>
-        <p>{product.brand}</p>
-        <p>{product.description}</p>
-        <p>₹{product.price}</p>
-        <select value={size} onChange={e => setSize(e.target.value)}>
-          <option value="">Select size</option>
-          {sizes.map(s => <option key={s} value={s}>{s}</option>)}
-        </select>
-        <input type="number" min="1" value={quantity} onChange={e => setQuantity(Number(e.target.value))} />
-        <button onClick={handleAdd}>Add to Cart</button>
-        {!isAuthenticated && <p className="note">You can add to cart as guest, checkout requires login.</p>}
+    <div className="container detail-page">
+      <div className="product-image-section">
+        <img src={getImageUrl(product.imageUrl)} alt={product.name} className="product-image" />
+      </div>
+      <div className="card product-card">
+        <div className="product-header">
+          <p className="brand-name">{product.brand}</p>
+          <h1 className="product-name">{product.name}</h1>
+          <p className="product-description">{product.description}</p>
+        </div>
+        
+        <div className="product-price-section">
+          <span className="product-price">₹{product.price.toFixed(2)}</span>
+          <span className={`stock-status ${product.stockQty > 0 ? 'in-stock' : 'out-of-stock'}`}>
+            {product.stockQty > 0 ? `${product.stockQty} in stock` : 'Out of stock'}
+          </span>
+        </div>
+        
+        <div className="product-form">
+          <div className="form-group">
+            <label htmlFor="size">Size</label>
+            <select id="size" value={size} onChange={e => setSize(e.target.value)} className="size-select">
+              <option value="">Choose a size...</option>
+              {sizes.map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
+          </div>
+          
+          <div className="form-group">
+            <label htmlFor="quantity">Quantity</label>
+            <div className="quantity-control">
+              <button className="qty-btn" onClick={() => setQuantity(Math.max(1, quantity - 1))}>−</button>
+              <input id="quantity" type="number" min="1" value={quantity} onChange={e => setQuantity(Number(e.target.value))} className="qty-input" />
+              <button className="qty-btn" onClick={() => setQuantity(quantity + 1)}>+</button>
+            </div>
+          </div>
+        </div>
+        
+        <button onClick={handleAdd} className="add-to-cart-btn" disabled={product.stockQty === 0}>
+          🛒 Add to Cart
+        </button>
+        
+        {!isAuthenticated && <p className="note">💡 You can add to cart as guest, but checkout requires login.</p>}
       </div>
     </div>
   );

@@ -16,7 +16,7 @@ export default function LoginPage() {
     if (!email || !password) return setError('All fields are required.');
     try {
       await login(email, password);
-      navigate('/');
+      setTimeout(() => navigate('/'), 100);
     } catch {
       setError('Invalid credentials.');
     }
@@ -25,12 +25,14 @@ export default function LoginPage() {
   return (
     <div className="container form-page">
       <h1>Login</h1>
-      <form onSubmit={submit}>
-        <input placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} />
-        <input placeholder="Password" type="password" value={password} onChange={e => setPassword(e.target.value)} />
-        {error && <p className="error">{error}</p>}
-        <button type="submit">Login</button>
-      </form>
+      <div className="card form-card">
+        <form onSubmit={submit}>
+          <input placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} />
+          <input placeholder="Password" type="password" value={password} onChange={e => setPassword(e.target.value)} />
+          {error && <p className="error">{error}</p>}
+          <button type="submit">Login</button>
+        </form>
+      </div>
       <p><Link to="/register">Create account</Link></p>
     </div>
   );
