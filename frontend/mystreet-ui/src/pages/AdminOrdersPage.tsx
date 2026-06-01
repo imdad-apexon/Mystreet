@@ -32,6 +32,7 @@ type AdminOrder = {
 
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<AdminOrder[]>([]);
+  const [pendingStatuses, setPendingStatuses] = useState<Record<string, number>>({});
   const [saving, setSaving] = useState<string | null>(null);
   const [error, setError] = useState('');
 
@@ -47,7 +48,16 @@ export default function AdminOrdersPage() {
     load();
   }, []);
 
-  const onChange = async (id: string, status: number) => {
+  useEffect(() => {
+    setPendingStatuses(
+      Object.fromEntries(orders.map(order => [order.id, order.status]))
+    );
+  }, [orders]);
+
+  const onSave = async (id: string) => {
+    const status = pendingStatuses[id];
+    if (status === undefined) return;
+
     setSaving(id);
     setError('');
     try {
@@ -99,19 +109,33 @@ export default function AdminOrdersPage() {
               <span style={{ color: '#565959', fontSize: 13 }}>
                 Payment: <strong>{o.paymentMethod}</strong>
               </span>
-              <label style={{ marginLeft: 16 }}>
-                Change status:{' '}
+              <label style={{ marginLeft: 16, display: 'inline-flex', alignItems: 'center', gap: 8, whiteSpace: 'nowrap' }}>
+                Change status:
                 <select
-                  value={o.status}
+                  value={pendingStatuses[o.id] ?? o.status}
                   disabled={saving === o.id}
-                  onChange={e => onChange(o.id, Number(e.target.value))}
+                  onChange={e =>
+                    setPendingStatuses(prev => ({
+                      ...prev,
+                      [o.id]: Number(e.target.value)
+                    }))
+                  }
                   style={{ minWidth: 120 }}
                 >
                   {Object.entries(ORDER_STATUS_LABELS).map(([val, label]) => (
                     <option key={val} value={val}>{label}</option>
                   ))}
                 </select>
+                <button
+                  type="button"
+                  className="btn-amazon"
+                  disabled={saving === o.id || (pendingStatuses[o.id] ?? o.status) === o.status}
+                  onClick={() => onSave(o.id)}
+                >
+                  {saving === o.id ? 'Updating...' : 'Update'}
+                </button>
               </label>
+              
             </div>
 
             <div className="order-card__body">

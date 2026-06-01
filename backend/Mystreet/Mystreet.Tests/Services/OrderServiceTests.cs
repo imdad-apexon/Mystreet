@@ -225,6 +225,33 @@ public class OrderServiceTests
     }
 
     [Fact]
+    public async Task UpdateStatusAsync_ShouldBeVisibleInCustomerOrderHistory()
+    {
+        await using var db = _fixture.CreateDbContext();
+        var userId = Guid.NewGuid();
+        var orderId = Guid.NewGuid();
+        db.Orders.Add(new Order
+        {
+            Id = orderId,
+            UserId = userId,
+            Status = OrderStatus.Pending,
+            ShippingAddress = "Mumbai",
+            PaymentMethod = "COD",
+            TotalAmount = 100
+        });
+        await db.SaveChangesAsync();
+
+        var service = new OrderService(db);
+        await service.UpdateStatusAsync(orderId, OrderStatus.Shipped);
+
+        var history = (await service.GetMineAsync(userId)).ToList();
+        history.Should().HaveCount(1);
+
+        var status = history[0].GetType().GetProperty("Status")?.GetValue(history[0]);
+        status.Should().Be(OrderStatus.Shipped);
+    }
+
+    [Fact]
     public async Task UpdateStatusAsync_ShouldReturnFalse_WhenOrderNotFound()
     {
         await using var db = _fixture.CreateDbContext();

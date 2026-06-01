@@ -11,6 +11,7 @@ import OrderDetailsPage from '../pages/OrderDetailsPage';
 import AdminProductsPage from '../pages/AdminProductsPage';
 import AdminProductFormPage from '../pages/AdminProductFormPage';
 import AdminOrdersPage from '../pages/AdminOrdersPage';
+import ForbiddenPage from '../pages/ForbiddenPage';
 import ProtectedRoute from '../components/ProtectedRoute';
 import AdminRoute from '../components/AdminRoute';
 
@@ -30,10 +31,12 @@ export default function AppRouter() {
       <Route path="/checkout" element={<ProtectedRoute><CheckoutPage /></ProtectedRoute>} />
       <Route path="/orders" element={<ProtectedRoute><OrdersPage /></ProtectedRoute>} />
       <Route path="/orders/:id" element={<ProtectedRoute><OrderDetailsPage /></ProtectedRoute>} />
+      <Route path="/admin" element={<AdminRoute><Navigate to="/admin/orders" replace /></AdminRoute>} />
       <Route path="/admin/products" element={<AdminRoute><AdminProductsPage /></AdminRoute>} />
       <Route path="/admin/products/new" element={<AdminRoute><AdminProductFormPage /></AdminRoute>} />
       <Route path="/admin/products/:id/edit" element={<AdminRoute><AdminProductFormPage /></AdminRoute>} />
       <Route path="/admin/orders" element={<AdminRoute><AdminOrdersPage /></AdminRoute>} />
+      <Route path="/forbidden" element={<ForbiddenPage />} />
     </Routes>
   );
 }

@@ -18,7 +18,7 @@ export default function Navbar() {
       <div className="nav-links">
         {isAuthenticated && <Link to="/cart">Cart ({totalQty})</Link>}
                 {isAuthenticated && <Link to="/">Products </Link>}
-        {isAuthenticated && <Link to="/orders">Orders</Link>}
+        {!isAdmin && isAuthenticated  && <Link to="/orders">Orders</Link>}
         {isAdmin && <Link to="/admin/products">Admin</Link>}
         {isAdmin && <Link to="/admin/orders">Admin Orders</Link>}
         {!isAuthenticated ? (
