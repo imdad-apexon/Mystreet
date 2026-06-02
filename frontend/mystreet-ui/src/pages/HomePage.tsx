@@ -22,6 +22,7 @@ export default function HomePage() {
   };
 
   useEffect(() => {
+    document.title = 'MyStreet - Products';
     loadProducts();
   }, []);
 
