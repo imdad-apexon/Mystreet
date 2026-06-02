@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import { useCart } from '../context/CartContext';
 import { orderService } from '../services/orderService';
 import { useAuth } from '../context/AuthContext';
@@ -33,8 +34,14 @@ export default function CheckoutPage() {
       const res = await orderService.create(payload);
       clearCart();
       navigate(`/orders/${res.orderId}`);
-    } catch {
-      setError('Order placement failed.');
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        const message = (err.response?.data as { message?: string } | undefined)?.message;
+        setError(message || 'Order placement failed. Please review cart quantities and try again.');
+        return;
+      }
+
+      setError('Order placement failed. Please try again.');
     }
   };
 
@@ -42,7 +49,7 @@ export default function CheckoutPage() {
     <div className="container form-page">
       <h1>Checkout</h1>
       <p>User: {user?.email}</p>
-      <p>Total: ₹{totalAmount}</p>
+      <p>Total: ₹{totalAmount.toFixed(2)}</p>
       <form onSubmit={submit}>
         <textarea
           placeholder="Shipping Address"

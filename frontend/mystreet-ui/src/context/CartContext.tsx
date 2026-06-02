@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import type { CartItem } from '../types/cart';
 import { storage } from '../services/storage';
+import { useAuth } from './AuthContext';
 
 type CartContextType = {
   items: CartItem[];
@@ -16,13 +17,23 @@ type CartContextType = {
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export function CartProvider({ children }: { children: ReactNode }) {
-  const [items, setItems] = useState<CartItem[]>(storage.getCart());
+  const { user } = useAuth();
+  const activeUserId = user?.userId ?? null;
+  const [items, setItems] = useState<CartItem[]>(() => storage.getCart(activeUserId));
 
   useEffect(() => {
-    storage.setCart(items);
-  }, [items]);
+    setItems(storage.getCart(activeUserId));
+  }, [activeUserId]);
+
+  useEffect(() => {
+    storage.setCart(items, activeUserId);
+  }, [items, activeUserId]);
 
   const addItem = (item: CartItem) => {
+    if (!Number.isFinite(item.quantity) || item.quantity < 1) {
+      return;
+    }
+
     setItems(prev => {
       const existing = prev.find(x => x.productId === item.productId && x.size === item.size);
       if (existing) {
@@ -37,8 +48,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
   };
 
   const updateQty = (productId: string, size: string, quantity: number) => {
+    const normalizedQuantity = Number.isFinite(quantity) ? Math.floor(quantity) : 0;
+
     setItems(prev =>
-      prev.map(x => x.productId === productId && x.size === size ? { ...x, quantity } : x)
+      prev.map(x => x.productId === productId && x.size === size ? { ...x, quantity: normalizedQuantity } : x)
         .filter(x => x.quantity > 0)
     );
   };

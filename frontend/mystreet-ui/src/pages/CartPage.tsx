@@ -1,10 +1,58 @@
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
+import { productService } from '../services/productService';
 import { getImageUrl } from '../utils/urlHelper';
 
 export default function CartPage() {
   const { items, updateQty, removeItem, totalAmount } = useCart();
   const navigate = useNavigate();
+  const [stockByProductId, setStockByProductId] = useState<Record<string, number>>({});
+  const [stockError, setStockError] = useState('');
+
+  useEffect(() => {
+    const productIds = [...new Set(items.map(x => x.productId))];
+
+    if (productIds.length === 0) {
+      setStockByProductId({});
+      setStockError('');
+      return;
+    }
+
+    let cancelled = false;
+    const loadStock = async () => {
+      try {
+        const products = await Promise.all(productIds.map(id => productService.getById(id)));
+        if (cancelled) return;
+
+        const stockMap: Record<string, number> = {};
+        for (const p of products) {
+          stockMap[p.id] = p.stockQty;
+        }
+        setStockByProductId(stockMap);
+        setStockError('');
+      } catch {
+        if (cancelled) return;
+        setStockByProductId({});
+        setStockError('Unable to validate current stock. Please refresh and try again.');
+      }
+    };
+
+    void loadStock();
+    return () => {
+      cancelled = true;
+    };
+  }, [items]);
+
+  const hasStockIssues = useMemo(() => {
+    return items.some(item => {
+      const stockQty = stockByProductId[item.productId];
+      if (stockQty === undefined) return false;
+      return stockQty < 1 || item.quantity > stockQty;
+    });
+  }, [items, stockByProductId]);
+
+  const checkoutDisabled = !!stockError || hasStockIssues;
 
   return (
     <div className="container">
@@ -21,20 +69,33 @@ export default function CartPage() {
                   <h3>{item.name}</h3>
                   <p>{item.brand}</p>
                   <p>Size: {item.size}</p>
-                  <p>₹{item.price}</p>
+                  <p>₹{item.price.toFixed(2)}</p>
+                  {stockByProductId[item.productId] === 0 && <p className="error">Out of stock</p>}
+                  {stockByProductId[item.productId] !== undefined && stockByProductId[item.productId] > 0 && item.quantity > stockByProductId[item.productId] && (
+                    <p className="error">Only {stockByProductId[item.productId]} in stock</p>
+                  )}
                 </div>
                 <input
                   type="number"
                   min="1"
+                  max={Math.max(1, stockByProductId[item.productId] ?? 1)}
                   value={item.quantity}
-                  onChange={e => updateQty(item.productId, item.size, Number(e.target.value))}
+                  onChange={e => {
+                    const parsed = Number.parseInt(e.target.value, 10);
+                    const minQty = 1;
+                    const maxQty = Math.max(minQty, stockByProductId[item.productId] ?? minQty);
+                    const bounded = Number.isFinite(parsed) ? Math.min(Math.max(minQty, parsed), maxQty) : minQty;
+                    updateQty(item.productId, item.size, bounded);
+                  }}
                 />
                 <button onClick={() => removeItem(item.productId, item.size)}>Remove</button>
               </div>
             ))}
           </div>
-          <h3>Total: ₹{totalAmount}</h3>
-          <button onClick={() => navigate('/checkout')}>Checkout</button>
+          {stockError && <p className="error">{stockError}</p>}
+          {hasStockIssues && <p className="error">Some items exceed available stock. Update your cart to continue.</p>}
+          <h3>Total: ₹{totalAmount.toFixed(2)}</h3>
+          <button onClick={() => navigate('/checkout')} disabled={checkoutDisabled}>Checkout</button>
         </>
       )}
       <div className="spacer">
