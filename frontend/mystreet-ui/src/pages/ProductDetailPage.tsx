@@ -27,6 +27,8 @@ export default function ProductDetailPage() {
 
   const handleAdd = () => {
     if (!size) return alert('Select a size');
+    if (!Number.isFinite(quantity) || quantity < 1) return alert('Quantity must be at least 1');
+    if (quantity > product.stockQty) return alert(`Only ${product.stockQty} item(s) available in stock`);
     addItem({
       productId: product.id,
       name: product.name,
@@ -71,8 +73,28 @@ export default function ProductDetailPage() {
             <label htmlFor="quantity">Quantity</label>
             <div className="quantity-control">
               <button className="qty-btn" onClick={() => setQuantity(Math.max(1, quantity - 1))}>−</button>
-              <input id="quantity" type="number" min="1" value={quantity} onChange={e => setQuantity(Number(e.target.value))} className="qty-input" />
-              <button className="qty-btn" onClick={() => setQuantity(quantity + 1)}>+</button>
+              <input
+                id="quantity"
+                type="number"
+                min="1"
+                max={Math.max(1, product.stockQty)}
+                value={quantity}
+                onChange={e => {
+                  const parsed = Number.parseInt(e.target.value, 10);
+                  const bounded = Number.isFinite(parsed)
+                    ? Math.min(Math.max(1, parsed), Math.max(1, product.stockQty))
+                    : 1;
+                  setQuantity(bounded);
+                }}
+                className="qty-input"
+              />
+              <button
+                className="qty-btn"
+                onClick={() => setQuantity(Math.min(Math.max(1, product.stockQty), quantity + 1))}
+                disabled={quantity >= Math.max(1, product.stockQty)}
+              >
+                +
+              </button>
             </div>
           </div>
         </div>

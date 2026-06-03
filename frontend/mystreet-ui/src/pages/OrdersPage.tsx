@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useCart } from '../context/CartContext';
+import { productService } from '../services/productService';
 import { orderService } from '../services/orderService';
 import type { Order } from '../types/order';
 import { getOrderStatusLabel, getOrderStatusStyle } from '../utils/orderStatus';
@@ -16,6 +18,65 @@ const formatDate = (iso: string) =>
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [buyAgainError, setBuyAgainError] = useState('');
+  const [buyAgainOrderId, setBuyAgainOrderId] = useState<string | null>(null);
+  const { addItem, clearCart } = useCart();
+  const navigate = useNavigate();
+
+  const handleBuyAgain = async (order: Order) => {
+    setBuyAgainError('');
+    const orderItems = order.items ?? [];
+    if (!orderItems.length) {
+      setBuyAgainError('No items found in this order.');
+      return;
+    }
+
+    setBuyAgainOrderId(order.id);
+
+    const stockResults = await Promise.all(orderItems.map(async (i) => {
+      try {
+        const product = await productService.getById(i.productId);
+        return { item: i, product };
+      } catch {
+        return { item: i, product: null };
+      }
+    }));
+
+    const unavailableNames = stockResults
+      .filter(x => !x.product || x.product.stockQty < 1)
+      .map(x => x.item.productName);
+
+    const availableItems = stockResults
+      .filter(x => x.product && x.product.stockQty > 0)
+      .map(x => ({
+        productId: x.product!.id,
+        name: x.product!.name,
+        brand: x.product!.brand,
+        imageUrl: x.product!.imageUrl,
+        price: x.product!.price,
+        size: x.item.size,
+        quantity: Math.min(x.item.quantity, x.product!.stockQty)
+      }))
+      .filter(x => x.quantity > 0);
+
+    if (!availableItems.length) {
+      setBuyAgainError(unavailableNames.length ? `${unavailableNames.join(', ')} out of stock.` : 'All items are currently unavailable.');
+      setBuyAgainOrderId(null);
+      return;
+    }
+
+    clearCart();
+    for (const i of availableItems) {
+      addItem(i);
+    }
+
+    if (unavailableNames.length) {
+      setBuyAgainError(`${unavailableNames.join(', ')} out of stock.`);
+    }
+
+    navigate('/cart');
+    setBuyAgainOrderId(null);
+  };
 
   useEffect(() => {
     orderService.mine()
@@ -30,6 +91,7 @@ export default function OrdersPage() {
   return (
     <div className="orders-page">
       <h1>Your Orders</h1>
+      {buyAgainError && <p className="error">{buyAgainError}</p>}
 
       {orders.length === 0 ? (
         <div className="empty">
@@ -111,7 +173,14 @@ export default function OrdersPage() {
 
               <div className="order-actions">
                 <Link to={`/orders/${o.id}`} className="btn-amazon">View order details</Link>
-                <Link to="/" className="btn-amazon btn-amazon--secondary">Buy it again</Link>
+                <button
+                  type="button"
+                  className="btn-amazon btn-amazon--secondary"
+                  onClick={() => void handleBuyAgain(o)}
+                  disabled={buyAgainOrderId === o.id}
+                >
+                  Buy it again
+                </button>
               </div>
             </div>
           </div>
