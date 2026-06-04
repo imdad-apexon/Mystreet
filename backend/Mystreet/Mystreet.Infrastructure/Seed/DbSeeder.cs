@@ -10,13 +10,43 @@ public static class DbSeeder
     {
         if (!db.Users.Any())
         {
-            db.Users.Add(new User
-            {
-                Id = Guid.NewGuid(),
-                Email = "admin@mystreet.com",
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword("Admin@123"),
-                IsAdmin = true
-            });
+            db.Users.AddRange(
+                new User
+                {
+                    Id = Guid.NewGuid(),
+                    Email = "admin@mystreet.com",
+                    PasswordHash = BCrypt.Net.BCrypt.HashPassword("Admin@123"),
+                    IsAdmin = true
+                },
+                new User
+                {
+                    Id = Guid.NewGuid(),
+                    Email = "john@mystreet.com",
+                    PasswordHash = BCrypt.Net.BCrypt.HashPassword("John@123"),
+                    IsAdmin = false
+                },
+                new User
+                {
+                    Id = Guid.NewGuid(),
+                    Email = "sarah@mystreet.com",
+                    PasswordHash = BCrypt.Net.BCrypt.HashPassword("Sarah@123"),
+                    IsAdmin = false
+                },
+                new User
+                {
+                    Id = Guid.NewGuid(),
+                    Email = "mike@mystreet.com",
+                    PasswordHash = BCrypt.Net.BCrypt.HashPassword("Mike@123"),
+                    IsAdmin = false
+                },
+                new User
+                {
+                    Id = Guid.NewGuid(),
+                    Email = "emma@mystreet.com",
+                    PasswordHash = BCrypt.Net.BCrypt.HashPassword("Emma@123"),
+                    IsAdmin = false
+                }
+            );
         }
 
         if (!db.Products.Any())
