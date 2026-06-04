@@ -134,9 +134,13 @@ baseURL: 'https://localhost:5001/api'
 ## Default Seed Data
 
 The backend seeds:
-- admin user: `admin@mystreet.com`
-- password: `Admin@123`
-- sample products for testing
+- **Admin User**: `admin@mystreet.com` / `Admin@123` (IsAdmin: true)
+- **Test Users**:
+  - `john@mystreet.com` / `John@123`
+  - `sarah@mystreet.com` / `Sarah@123`
+  - `mike@mystreet.com` / `Mike@123`
+  - `emma@mystreet.com` / `Emma@123`
+- Sample products for testing
 
 ## Testing
 
