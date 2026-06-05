@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { productService } from '../services/productService';
 import type { Product } from '../types/product';
 import { useCart } from '../context/CartContext';
@@ -14,27 +14,52 @@ export default function ProductDetailPage() {
   const { isAuthenticated } = useAuth();
 
   const [product, setProduct] = useState<Product | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [size, setSize] = useState('');
   const [quantity, setQuantity] = useState(1);
 
   useEffect(() => {
-    if (id) productService.getById(id).then(setProduct);
+    if (id) {
+      setLoading(true);
+      setError('');
+      productService.getById(id)
+        .then(setProduct)
+        .catch(() => setError('Product not found'))
+        .finally(() => setLoading(false));
+    }
   }, [id]);
 
-  if (!product) return <div className="container">Loading...</div>;
+  if (!product && !loading) {
+    return (
+      <div className="container detail-page">
+        <Link to="/products" className="back-link">← Back to Products</Link>
+        <p className="error">{error || 'Product not found'}</p>
+      </div>
+    );
+  }
 
-  const sizes = product.sizesCsv.split(',');
+  if (loading) {
+    return (
+      <div className="container detail-page">
+        <Link to="/products" className="back-link">← Back to Products</Link>
+        <p>Loading product details...</p>
+      </div>
+    );
+  }
+
+  const sizes = product!.sizesCsv.split(',');
 
   const handleAdd = () => {
     if (!size) return alert('Select a size');
     if (!Number.isFinite(quantity) || quantity < 1) return alert('Quantity must be at least 1');
-    if (quantity > product.stockQty) return alert(`Only ${product.stockQty} item(s) available in stock`);
+    if (quantity > product!.stockQty) return alert(`Only ${product!.stockQty} item(s) available in stock`);
     addItem({
-      productId: product.id,
-      name: product.name,
-      brand: product.brand,
-      price: product.price,
-      imageUrl: product.imageUrl,
+      productId: product!.id,
+      name: product!.name,
+      brand: product!.brand,
+      price: product!.price,
+      imageUrl: product!.imageUrl,
       size,
       quantity
     });
@@ -43,20 +68,21 @@ export default function ProductDetailPage() {
 
   return (
     <div className="container detail-page">
+      <Link to="/products" className="back-link">← Back to Products</Link>
       <div className="product-image-section">
-        <img src={getImageUrl(product.imageUrl)} alt={product.name} className="product-image" />
+        <img src={getImageUrl(product!.imageUrl)} alt={product!.name} className="product-image" />
       </div>
       <div className="card product-card">
         <div className="product-header">
-          <p className="brand-name">{product.brand}</p>
-          <h1 className="product-name">{product.name}</h1>
-          <p className="product-description">{product.description}</p>
+          <p className="brand-name">{product!.brand}</p>
+          <h1 className="product-name">{product!.name}</h1>
+          <p className="product-description">{product!.description}</p>
         </div>
         
         <div className="product-price-section">
-          <span className="product-price">₹{product.price.toFixed(2)}</span>
-          <span className={`stock-status ${product.stockQty > 0 ? 'in-stock' : 'out-of-stock'}`}>
-            {product.stockQty > 0 ? `${product.stockQty} in stock` : 'Out of stock'}
+          <span className="product-price">₹{product!.price.toFixed(2)}</span>
+          <span className={`stock-status ${product!.stockQty > 0 ? 'in-stock' : 'out-of-stock'}`}>
+            {product!.stockQty > 0 ? `${product!.stockQty} in stock` : 'Out of stock'}
           </span>
         </div>
         
@@ -77,12 +103,12 @@ export default function ProductDetailPage() {
                 id="quantity"
                 type="number"
                 min="1"
-                max={Math.max(1, product.stockQty)}
+                max={Math.max(1, product!.stockQty)}
                 value={quantity}
                 onChange={e => {
                   const parsed = Number.parseInt(e.target.value, 10);
                   const bounded = Number.isFinite(parsed)
-                    ? Math.min(Math.max(1, parsed), Math.max(1, product.stockQty))
+                    ? Math.min(Math.max(1, parsed), Math.max(1, product!.stockQty))
                     : 1;
                   setQuantity(bounded);
                 }}
@@ -90,8 +116,8 @@ export default function ProductDetailPage() {
               />
               <button
                 className="qty-btn"
-                onClick={() => setQuantity(Math.min(Math.max(1, product.stockQty), quantity + 1))}
-                disabled={quantity >= Math.max(1, product.stockQty)}
+                onClick={() => setQuantity(Math.min(Math.max(1, product!.stockQty), quantity + 1))}
+                disabled={quantity >= Math.max(1, product!.stockQty)}
               >
                 +
               </button>
@@ -99,7 +125,7 @@ export default function ProductDetailPage() {
           </div>
         </div>
         
-        <button onClick={handleAdd} className="add-to-cart-btn" disabled={product.stockQty === 0}>
+        <button onClick={handleAdd} className="add-to-cart-btn" disabled={product!.stockQty === 0}>
           🛒 Add to Cart
         </button>
         

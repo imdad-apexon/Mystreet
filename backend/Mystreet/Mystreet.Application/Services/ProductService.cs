@@ -15,14 +15,18 @@ public class ProductService : IProductService
     {
         var query = _db.Products.AsQueryable();
 
-        if (!string.IsNullOrWhiteSpace(brand))
-            query = query.Where(x => x.Brand == brand);
+        var normalizedBrand = brand?.Trim().ToLower();
+        var normalizedCategory = category?.Trim().ToLower();
+        var normalizedSize = size?.Trim().ToLower();
 
-        if (!string.IsNullOrWhiteSpace(category))
-            query = query.Where(x => x.Category == category);
+        if (!string.IsNullOrWhiteSpace(normalizedBrand))
+            query = query.Where(x => x.Brand.ToLower() == normalizedBrand);
 
-        if (!string.IsNullOrWhiteSpace(size))
-            query = query.Where(x => x.SizesCsv.Contains(size));
+        if (!string.IsNullOrWhiteSpace(normalizedCategory))
+            query = query.Where(x => x.Category.ToLower() == normalizedCategory);
+
+        if (!string.IsNullOrWhiteSpace(normalizedSize))
+            query = query.Where(x => x.SizesCsv.ToLower().Contains(normalizedSize));
 
         if (minPrice.HasValue)
             query = query.Where(x => x.Price >= minPrice.Value);

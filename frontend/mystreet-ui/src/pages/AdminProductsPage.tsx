@@ -2,11 +2,19 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { productService } from '../services/productService';
 import type { Product } from '../types/product';
+import { getImageUrl } from '../utils/urlHelper';
 
 export default function AdminProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [search, setSearch] = useState('');
 
-  const load = async () => setProducts(await productService.getAll());
+  const load = async () => {
+    setLoading(true);
+    setProducts(await productService.getAll());
+    setLoading(false);
+  };
 
   useEffect(() => {
     load();
@@ -14,26 +22,127 @@ export default function AdminProductsPage() {
 
   const remove = async (id: string) => {
     await productService.remove(id);
+    setDeleteId(null);
     load();
   };
+
+  const getStockStatus = (qty: number): { label: string; color: string } => {
+    if (qty === 0) return { label: 'Out of Stock', color: '#c0392b' };
+    if (qty < 10) return { label: 'Low Stock', color: '#f39c12' };
+    return { label: 'In Stock', color: '#27ae60' };
+  };
+
+  const filteredProducts = products.filter(p =>
+    p.name.toLowerCase().includes(search.toLowerCase()) ||
+    p.brand.toLowerCase().includes(search.toLowerCase())
+  );
 
   return (
     <div className="container">
       <h1>Admin Products</h1>
-      <Link to="/admin/products/new">Add Product</Link>
-      <div className="list">
-        {products.map(p => (
-          <div key={p.id} className="list-item">
-            <strong>{p.name}</strong>
-            <p>{p.brand}</p>
-            <p>Stock: {p.stockQty}</p>
-            <div className="row">
-              <Link to={`/admin/products/${p.id}/edit`}>Edit</Link>
-              <button onClick={() => remove(p.id)}>Delete</button>
+      
+      <div className="admin-header">
+        <input
+          type="text"
+          placeholder="Search by name or brand..."
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          className="search-input"
+        />
+        <Link to="/admin/products/new" className="btn-amazon">
+          ➕ Add Product
+        </Link>
+      </div>
+
+      {loading ? (
+        <p>Loading products...</p>
+      ) : filteredProducts.length === 0 ? (
+        <div className="empty">
+          <p>{search ? 'No products match your search.' : 'No products yet.'}</p>
+          <Link to="/admin/products/new" className="btn-amazon" style={{ marginTop: '12px' }}>
+            ➕ Add First Product
+          </Link>
+        </div>
+      ) : (
+        <div className="admin-products-table">
+          <table>
+            <thead>
+              <tr>
+                <th>Image</th>
+                <th>Name</th>
+                <th>Brand</th>
+                <th>Price</th>
+                <th>Stock</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredProducts.map(p => {
+                const stockStatus = getStockStatus(p.stockQty);
+                return (
+                  <tr key={p.id}>
+                    <td className="img-cell">
+                      <img
+                        src={getImageUrl(p.imageUrl)}
+                        alt={p.name}
+                        className="product-thumb"
+                        onError={e => ((e.target as HTMLImageElement).style.visibility = 'hidden')}
+                      />
+                    </td>
+                    <td>
+                      <strong>{p.name}</strong>
+                    </td>
+                    <td>{p.brand}</td>
+                    <td>₹{p.price.toFixed(2)}</td>
+                    <td>{p.stockQty}</td>
+                    <td>
+                      <span
+                        className="stock-badge"
+                        style={{ backgroundColor: stockStatus.color }}
+                      >
+                        {stockStatus.label}
+                      </span>
+                    </td>
+                    <td >
+                      <Link to={`/admin/products/${p.id}/edit`} className="btn-small btn-primary">
+                        ✏️ Edit
+                      </Link>
+                      &nbsp;&nbsp;
+                      <button
+                        className="btn-small btn-danger"
+                        onClick={() => setDeleteId(p.id)}
+                      >
+                        🗑️ Delete
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {deleteId && (
+        <div className="modal-overlay" onClick={() => setDeleteId(null)}>
+          <div className="modal" onClick={e => e.stopPropagation()}>
+            <h2>Confirm Delete</h2>
+            <p>Are you sure you want to delete this product? This action cannot be undone.</p>
+            <div className="modal-actions">
+              <button className="btn-small btn-secondary" onClick={() => setDeleteId(null)}>
+                Cancel
+              </button>
+              <button
+                className="btn-small btn-danger"
+                onClick={() => remove(deleteId)}
+              >
+                Delete
+              </button>
             </div>
           </div>
-        ))}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
