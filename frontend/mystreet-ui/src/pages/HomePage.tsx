@@ -30,10 +30,25 @@ export default function HomePage() {
     <div className="container">
       <h1>Products</h1>
       <div className="filters">
-        <input placeholder="Brand" value={brand} onChange={e => setBrand(e.target.value)} />
-        <input placeholder="Category" value={category} onChange={e => setCategory(e.target.value)} />
-        <input placeholder="Size" value={size} onChange={e => setSize(e.target.value)} />
-        <button onClick={loadProducts}>Filter</button>
+        <input
+          className="filter-input"
+          placeholder="Brand"
+          value={brand}
+          onChange={e => setBrand(e.target.value)}
+        />
+        <input
+          className="filter-input"
+          placeholder="Category"
+          value={category}
+          onChange={e => setCategory(e.target.value)}
+        />
+        <input
+          className="filter-input"
+          placeholder="Size"
+          value={size}
+          onChange={e => setSize(e.target.value)}
+        />
+        <button className="filter-btn" onClick={loadProducts}>Filter</button>
       </div>
       {loading ? <p>Loading...</p> : <div className="grid">{products.map(p => <ProductCard key={p.id} product={p} />)}</div>}
     </div>

@@ -76,6 +76,28 @@ public class ProductServiceTests
     }
 
     [Fact]
+    public async Task GetAllAsync_ShouldFilterByBrand_CaseInsensitive()
+    {
+        // Arrange
+        await using var db = _fixture.CreateDbContext();
+        db.Products.AddRange(
+            new Product { Id = Guid.NewGuid(), Name = "Air Max 90", Brand = "Nike", Price = 120, SizesCsv = "7,8,9", StockQty = 10, ImageUrl = "", Description = "", Category = "Sneakers", IsActive = true },
+            new Product { Id = Guid.NewGuid(), Name = "Ultraboost", Brand = "Adidas", Price = 140, SizesCsv = "9,10,11", StockQty = 12, ImageUrl = "", Description = "", Category = "Sneakers", IsActive = true }
+        );
+        await db.SaveChangesAsync();
+
+        var service = new ProductService(db);
+
+        // Act
+        var result = await service.GetAllAsync("niKE", null, null, null, null);
+
+        // Assert
+        result.Should().HaveCount(1);
+        result.First().Brand.Should().Be("Nike");
+        result.First().Name.Should().Be("Air Max 90");
+    }
+
+    [Fact]
     public async Task GetAllAsync_ShouldFilterByCategory()
     {
         // Arrange
