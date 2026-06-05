@@ -32,15 +32,19 @@ type AdminOrder = {
 
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<AdminOrder[]>([]);
+  const [loading, setLoading] = useState(true);
   const [pendingStatuses, setPendingStatuses] = useState<Record<string, number>>({});
   const [saving, setSaving] = useState<string | null>(null);
   const [error, setError] = useState('');
 
   const load = async () => {
     try {
-      setOrders(await orderService.all());
+      const data = await orderService.all();
+      setOrders(Array.isArray(data) ? data : []);
     } catch {
       setError('Failed to load orders.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -74,7 +78,8 @@ export default function AdminOrdersPage() {
     <div className="orders-page">
       <h1>Admin Orders</h1>
       {error && <p style={{ color: 'red' }}>{error}</p>}
-      {orders.length === 0 ? (
+      {loading && <p>Loading orders...</p>}
+      {!loading && orders.length === 0 ? (
         <div className="empty">
           <p>No orders.</p>
         </div>
