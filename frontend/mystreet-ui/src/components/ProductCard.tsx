@@ -8,13 +8,13 @@ export default function ProductCard({ product }: { product: Product }) {
     : 'Out of stock';
   
   return (
-    <div className="card">
-      <img src={getImageUrl(product.imageUrl)} alt={product.name} />
-      <h3>{product.name}</h3>
-      <p>{product.brand}</p>
-      <p>₹{product.price}</p>
+    <div className="card product-list-card">
+      <img src={getImageUrl(product.imageUrl)} alt={product.name} className="product-list-card__image" />
+      <h3 className="product-list-card__title">{product.name}</h3>
+      <p className="product-list-card__brand">{product.brand}</p>
+      <p className="product-list-card__price">₹{product.price.toFixed(2)}</p>
       <p className={product.stockQty > 0 ? 'in-stock' : 'out-of-stock'}>{stockStatus}</p>
-      <Link to={`/products/${product.id}`}>View Details</Link>
+      <Link to={`/products/${product.id}`} className="product-list-card__cta">View Details</Link>
     </div>
   );
 }
