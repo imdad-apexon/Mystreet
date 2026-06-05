@@ -1,77 +1,50 @@
-.orders-page {
-  max-width: 1100px;
-  margin: 24px auto;
-  padding: 0 16px;
-  font-family: 'Amazon Ember', Arial, sans-serif;
-  color: #0f1111;
-}
-
-.orders-page h1 {
-  font-size: 28px;
-  margin: 16px 0 24px;
-  border-bottom: 1px solid #e7e7e7;
-  padding-bottom: 12px;
-}
-
-.orders-page .empty {
-  background: #fff;
-  border: 1px solid #d5d9d9;
-  border-radius: 8px;
-  padding: 32px;
-  text-align: center;
-  color: #565959;
-}
 
 .order-card {
-  background: #fff;
-  border: 1px solid #d5d9d9;
-  border-radius: 8px;
   margin-bottom: 20px;
   overflow: hidden;
-  box-shadow: 0 1px 2px rgba(15, 17, 17, 0.05);
 }
 
 .order-card__header {
-  background: #f0f2f2;
-  border-bottom: 1px solid #d5d9d9;
-  padding: 12px 18px;
   display: grid;
   grid-template-columns: repeat(3, 1fr) auto;
-  gap: 24px;
+  gap: 16px;
   align-items: center;
+  padding: 16px 18px;
+  background: rgba(15, 118, 110, 0.07);
+  border-bottom: 1px solid var(--border);
 }
 
 .order-card__header .meta {
   display: flex;
   flex-direction: column;
+  gap: 3px;
 }
 
 .order-card__header .meta .label {
   font-size: 11px;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: #565959;
-  margin-bottom: 2px;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
 }
 
 .order-card__header .meta .value {
-  font-size: 13px;
-  color: #0f1111;
-  font-weight: 500;
+  font-size: 14px;
+  color: var(--text);
+  font-weight: 700;
 }
 
 .order-card__header .order-id {
   text-align: right;
   font-size: 12px;
-  color: #565959;
+  color: var(--text-muted);
 }
 
 .order-card__header .order-id strong {
   display: block;
-  color: #0f1111;
-  font-weight: 500;
+  color: var(--text);
   font-size: 13px;
-  margin-top: 2px;
+  margin-top: 4px;
   word-break: break-all;
 }
 
@@ -80,31 +53,32 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: 12px;
   flex-wrap: wrap;
 }
 
 .order-card__status-row .title {
-  font-size: 18px;
+  font-size: 1rem;
   font-weight: 700;
-  color: #0f1111;
 }
 
 .order-card__body {
   padding: 14px 18px 18px;
   display: grid;
   grid-template-columns: 1fr 220px;
-  gap: 24px;
+  gap: 20px;
 }
 
 @media (max-width: 720px) {
   .order-card__header {
     grid-template-columns: 1fr 1fr;
   }
+
   .order-card__header .order-id {
     grid-column: 1 / -1;
     text-align: left;
   }
+
   .order-card__body {
     grid-template-columns: 1fr;
   }
@@ -126,7 +100,8 @@
   background: transparent;
 }
 
-.order-item__image, .order-item__placeholder {
+.order-item__image,
+.order-item__placeholder {
   width: 96px !important;
   height: 96px !important;
   min-width: 96px !important;
@@ -134,9 +109,9 @@
   max-width: 96px !important;
   max-height: 96px !important;
   object-fit: cover;
-  border-radius: 6px;
+  border-radius: 10px;
   background: #f7f7f7;
-  border: 1px solid #ececec;
+  border: 1px solid var(--border);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -144,9 +119,9 @@
 }
 
 .order-item__placeholder {
-  color: #999;
+  color: var(--text-muted);
   font-size: 11px;
-  background: #f0f2f2;
+  background: var(--surface-soft);
 }
 
 .order-item {
@@ -156,31 +131,9 @@
   align-items: center;
 }
 
-.order-item__image {
-  width: 96px;
-  height: 96px;
-  object-fit: cover;
-  border-radius: 6px;
-  background: #f7f7f7;
-  border: 1px solid #ececec;
-}
-
-.order-item__placeholder {
-  width: 96px;
-  height: 96px;
-  border-radius: 6px;
-  background: #f0f2f2;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #999;
-  font-size: 11px;
-  border: 1px solid #ececec;
-}
-
 .order-item__info .name {
-  color: #007185;
-  font-weight: 500;
+  color: var(--brand);
+  font-weight: 700;
   font-size: 15px;
   text-decoration: none;
   display: block;
@@ -188,20 +141,20 @@
 }
 
 .order-item__info .name:hover {
-  color: #c7511f;
+  color: var(--brand-dark);
   text-decoration: underline;
 }
 
 .order-item__info .meta {
-  color: #565959;
+  color: var(--text-muted);
   font-size: 13px;
   margin: 2px 0;
 }
 
 .order-item__price {
   font-size: 15px;
-  font-weight: 600;
-  color: #0f1111;
+  font-weight: 700;
+  color: var(--text);
   white-space: nowrap;
 }
 
@@ -247,36 +200,21 @@
   display: inline-block;
 }
 
-.orders-page .back-link {
-  display: inline-block;
-  margin-bottom: 12px;
-  color: #007185;
-  text-decoration: none;
-  font-size: 14px;
-}
-
-.orders-page .back-link:hover {
-  color: #c7511f;
-  text-decoration: underline;
-}
-
 .detail-summary {
   display: grid;
   grid-template-columns: 1.4fr 1fr;
   gap: 20px;
-  padding: 18px;
-  border-top: 1px solid #e7e7e7;
-  background: #fafafa;
+  margin: 0 18px 18px;
 }
 
 .detail-summary h3 {
   margin: 0 0 8px;
   font-size: 14px;
-  color: #0f1111;
+  color: var(--text);
 }
 
 .detail-summary .value {
-  color: #565959;
+  color: var(--text-muted);
   font-size: 14px;
   white-space: pre-wrap;
 }
@@ -289,13 +227,18 @@
 }
 
 .summary-table .label {
-  color: #565959;
+  color: var(--text-muted);
 }
 
 .summary-table .amount {
-  color: #0f1111;
-  font-weight: 500;
+  color: var(--text);
+  font-weight: 700;
   text-align: right;
+}
+
+.summary-table .grand {
+  font-weight: 800;
+  color: var(--text);
 }
 
 .summary-table .grand {
