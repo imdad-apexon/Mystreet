@@ -13,6 +13,12 @@ interface ProductForm {
   category: string;
 }
 
+const MIN_PRICE = 0.01;
+const MAX_PRICE = 1000000;
+const MAX_STOCK_QTY = 10000;
+const MIN_NAME_LENGTH = 3;
+const MAX_NAME_LENGTH = 200;
+
 export default function AdminProductFormPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -71,18 +77,25 @@ export default function AdminProductFormPage() {
     setSubmitting(true);
 
     try {
-      if (!form.name.trim() || !form.brand.trim()) {
+      const trimmedName = form.name.trim();
+
+      if (!trimmedName || !form.brand.trim()) {
         setError('Name and brand are required');
         return;
       }
 
-      if (form.price < 0) {
-        setError('Price must be positive');
+      if (trimmedName.length < MIN_NAME_LENGTH || trimmedName.length > MAX_NAME_LENGTH) {
+        setError(`Product name must be between ${MIN_NAME_LENGTH} and ${MAX_NAME_LENGTH} characters.`);
         return;
       }
 
-      if (form.stockQty < 0) {
-        setError('Stock quantity must be non-negative');
+      if (!Number.isFinite(form.price) || form.price < MIN_PRICE || form.price > MAX_PRICE) {
+        setError(`Price must be between ₹${MIN_PRICE.toFixed(2)} and ₹${MAX_PRICE.toLocaleString()}.`);
+        return;
+      }
+
+      if (!Number.isInteger(form.stockQty) || form.stockQty < 0 || form.stockQty > MAX_STOCK_QTY) {
+        setError(`Stock quantity must be an integer between 0 and ${MAX_STOCK_QTY}.`);
         return;
       }
 
@@ -95,7 +108,8 @@ export default function AdminProductFormPage() {
       navigate('/admin/products');
     } catch (err) {
       console.error(err);
-      setError('Failed to save product. Please try again.');
+      const apiMessage = (err as any)?.response?.data?.message;
+      setError(typeof apiMessage === 'string' ? apiMessage : 'Failed to save product. Please try again.');
     } finally {
       setSubmitting(false);
     }
@@ -124,8 +138,11 @@ export default function AdminProductFormPage() {
               onChange={(e) =>
                 setForm({ ...form, name: e.target.value })
               }
+              minLength={MIN_NAME_LENGTH}
+              maxLength={MAX_NAME_LENGTH}
               required
             />
+            <small className="field-help">{MIN_NAME_LENGTH}-{MAX_NAME_LENGTH} characters.</small>
           </div>
 
           <div className="form-group">
@@ -187,9 +204,11 @@ export default function AdminProductFormPage() {
                   })
                 }
                 step="0.01"
-                min="0"
+                min={MIN_PRICE}
+                max={MAX_PRICE}
                 required
               />
+              <small className="field-help">Allowed range: ₹{MIN_PRICE.toFixed(2)} to ₹{MAX_PRICE.toLocaleString()}.</small>
             </div>
 
             <div className="form-group">
@@ -206,8 +225,11 @@ export default function AdminProductFormPage() {
                   })
                 }
                 min="0"
+                max={MAX_STOCK_QTY}
+                step="1"
                 required
               />
+              <small className="field-help">Allowed range: 0 to {MAX_STOCK_QTY}.</small>
             </div>
           </div>
 

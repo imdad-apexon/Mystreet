@@ -8,6 +8,12 @@ namespace Mystreet.Application.Services;
 
 public class ProductService : IProductService
 {
+    private const decimal MinPrice = 0.01m;
+    private const decimal MaxPrice = 1000000m;
+    private const int MaxStockQty = 10000;
+    private const int MinNameLength = 3;
+    private const int MaxNameLength = 200;
+
     private readonly AppDbContext _db;
     public ProductService(AppDbContext db) => _db = db;
 
@@ -70,6 +76,8 @@ public class ProductService : IProductService
 
     public async Task<ProductDto> CreateAsync(CreateProductDto dto)
     {
+        ValidateAndNormalize(dto);
+
         var product = new Product
         {
             Id = Guid.NewGuid(),
@@ -90,6 +98,8 @@ public class ProductService : IProductService
 
     public async Task<ProductDto?> UpdateAsync(Guid id, CreateProductDto dto)
     {
+        ValidateAndNormalize(dto);
+
         var product = await _db.Products.FindAsync(id);
         if (product is null) return null;
 
@@ -104,6 +114,25 @@ public class ProductService : IProductService
 
         await _db.SaveChangesAsync();
         return await GetByIdAsync(id);
+    }
+
+    private static void ValidateAndNormalize(CreateProductDto dto)
+    {
+        dto.Name = dto.Name?.Trim() ?? string.Empty;
+        dto.Brand = dto.Brand?.Trim() ?? string.Empty;
+        dto.Description = dto.Description?.Trim() ?? string.Empty;
+        dto.SizesCsv = dto.SizesCsv?.Trim() ?? string.Empty;
+        dto.ImageUrl = dto.ImageUrl?.Trim() ?? string.Empty;
+        dto.Category = dto.Category?.Trim() ?? string.Empty;
+
+        if (dto.Name.Length < MinNameLength || dto.Name.Length > MaxNameLength)
+            throw new InvalidOperationException($"Product name must be between {MinNameLength} and {MaxNameLength} characters.");
+
+        if (dto.Price < MinPrice || dto.Price > MaxPrice)
+            throw new InvalidOperationException($"Price must be between {MinPrice:0.00} and {MaxPrice:0.##}.");
+
+        if (dto.StockQty < 0 || dto.StockQty > MaxStockQty)
+            throw new InvalidOperationException($"Stock quantity must be between 0 and {MaxStockQty}.");
     }
 
     public async Task<bool> DeleteAsync(Guid id)

@@ -27,6 +27,7 @@ type AdminOrder = {
     quantity: number;
     unitPrice: number;
     imageUrl: string;
+    isProductActive?: boolean;
   }[];
 };
 
@@ -192,9 +193,13 @@ export default function AdminOrdersPage() {
                         </div>
                     )}
                     <div className="order-item__info">
-                      <Link to={`/products/${i.productId}`} className="name">
-                        {i.productName}
-                      </Link>
+                      {i.isProductActive === false ? (
+                        <span className="name">{i.productName} (Deleted)</span>
+                      ) : (
+                        <Link to={`/products/${i.productId}`} className="name">
+                          {i.productName}
+                        </Link>
+                      )}
                       <div className="meta">Size: {i.size}</div>
                       <div className="meta">Qty: {i.quantity}</div>
                     </div>

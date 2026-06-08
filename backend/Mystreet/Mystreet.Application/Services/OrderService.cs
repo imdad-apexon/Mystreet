@@ -29,6 +29,7 @@ public class OrderService : IOrderService
             Status = OrderStatus.Pending
         };
 
+        var orderItems = new List<OrderItem>();
         foreach (var item in dto.Items)
         {
             var product = products.First(x => x.Id == item.ProductId);
@@ -37,29 +38,42 @@ public class OrderService : IOrderService
 
             product.StockQty -= item.Quantity;
 
-            order.Items.Add(new OrderItem
+            var orderItem = new OrderItem
             {
                 Id = Guid.NewGuid(),
+                OrderId = order.Id,
                 ProductId = product.Id,
                 ProductName = product.Name,
                 Quantity = item.Quantity,
                 Size = item.Size,
                 UnitPrice = product.Price
-            });
+            };
+            orderItems.Add(orderItem);
+            order.Items.Add(orderItem);
         }
 
         order.TotalAmount = order.Items.Sum(x => x.UnitPrice * x.Quantity);
 
         _db.Orders.Add(order);
+        _db.OrderItems.AddRange(orderItems);
         await _db.SaveChangesAsync();
         return order.Id;
     }
 
     public async Task<IEnumerable<object>> GetMineAsync(Guid userId)
     {
-        return await _db.Orders
+        var orders = await _db.Orders
             .Where(x => x.UserId == userId)
             .OrderByDescending(x => x.CreatedAt)
+            .Include(x => x.Items)
+            .ToListAsync();
+
+        var productIds = orders.SelectMany(x => x.Items).Select(x => x.ProductId).Distinct().ToList();
+        var products = await _db.Products
+            .Where(p => productIds.Contains(p.Id))
+            .ToDictionaryAsync(p => p.Id);
+
+        return orders
             .Select(x => new
             {
                 x.Id,
@@ -75,38 +89,44 @@ public class OrderService : IOrderService
                     i.Size,
                     i.Quantity,
                     i.UnitPrice,
-                    ImageUrl = i.Product != null ? i.Product.ImageUrl : null
+                    ImageUrl = products.TryGetValue(i.ProductId, out var prod) ? prod.ImageUrl : null,
+                    IsProductActive = products.TryGetValue(i.ProductId, out var p) && p.IsActive
                 })
             })
-            .ToListAsync();
+            .ToList();
     }
 
     public async Task<object?> GetByIdAsync(Guid userId, Guid orderId, bool isAdmin)
     {
-        var query = _db.Orders.Include(x => x.Items).ThenInclude(x => x.Product).AsQueryable();
+        var orders = await _db.Orders.Include(x => x.Items).ToListAsync();
 
-        var order = isAdmin
-            ? await query.FirstOrDefaultAsync(x => x.Id == orderId)
-            : await query.FirstOrDefaultAsync(x => x.Id == orderId && x.UserId == userId);
+        var matchingOrder = isAdmin
+            ? orders.FirstOrDefault(x => x.Id == orderId)
+            : orders.FirstOrDefault(x => x.Id == orderId && x.UserId == userId);
 
-        if (order is null) return null;
+        if (matchingOrder is null) return null;
+
+        var productIds = matchingOrder.Items.Select(x => x.ProductId).ToList();
+        var products = await _db.Products
+            .Where(p => productIds.Contains(p.Id))
+            .ToDictionaryAsync(p => p.Id);
 
         return new
         {
-            order.Id,
-            order.Status,
-            order.TotalAmount,
-            order.ShippingAddress,
-            order.PaymentMethod,
-            order.CreatedAt,
-            Items = order.Items.Select(x => new
+            matchingOrder.Id,
+            matchingOrder.Status,
+            matchingOrder.TotalAmount,
+            matchingOrder.ShippingAddress,
+            matchingOrder.PaymentMethod,
+            matchingOrder.CreatedAt,
+            Items = matchingOrder.Items.Select(x => new
             {
                 x.ProductId,
                 x.ProductName,
                 x.Size,
                 x.Quantity,
                 x.UnitPrice,
-                ImageUrl = x.Product != null ? x.Product.ImageUrl : null
+                ImageUrl = products.TryGetValue(x.ProductId, out var prod) ? prod.ImageUrl : null
             })
         };
     }
@@ -131,10 +151,18 @@ public class OrderService : IOrderService
 
     public async Task<IEnumerable<object>> GetAllAsync()
     {
-        return await _db.Orders
+        var orders = await _db.Orders
             .Include(x => x.User)
-            .Include(x => x.Items).ThenInclude(i => i.Product)
+            .Include(x => x.Items)
             .OrderByDescending(x => x.CreatedAt)
+            .ToListAsync();
+
+        var productIds = orders.SelectMany(x => x.Items).Select(x => x.ProductId).Distinct().ToList();
+        var products = await _db.Products
+            .Where(p => productIds.Contains(p.Id))
+            .ToDictionaryAsync(p => p.Id);
+
+        return orders
             .Select(x => new
             {
                 x.Id,
@@ -151,10 +179,11 @@ public class OrderService : IOrderService
                     i.Size,
                     i.Quantity,
                     i.UnitPrice,
-                    ImageUrl = i.Product != null ? i.Product.ImageUrl : null
+                    ImageUrl = products.TryGetValue(i.ProductId, out var prod) ? prod.ImageUrl : null,
+                    IsProductActive = products.TryGetValue(i.ProductId, out var p) && p.IsActive
                 })
             })
-            .ToListAsync();
+            .ToList();
     }
 
     public async Task<bool> UpdateStatusAsync(Guid orderId, OrderStatus status)
