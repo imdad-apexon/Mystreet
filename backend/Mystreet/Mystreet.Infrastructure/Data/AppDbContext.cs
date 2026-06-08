@@ -50,7 +50,8 @@ public class AppDbContext : DbContext
              .HasForeignKey(x => x.OrderId);
             e.HasOne(x => x.Product)
              .WithMany()
-             .HasForeignKey(x => x.ProductId);
+             .HasForeignKey(x => x.ProductId)
+             .OnDelete(DeleteBehavior.Restrict);
             e.Property(x => x.UnitPrice).HasColumnType("decimal(18,2)");
         });
     }

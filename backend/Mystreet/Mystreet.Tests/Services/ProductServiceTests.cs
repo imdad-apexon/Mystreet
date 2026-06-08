@@ -314,6 +314,87 @@ public class ProductServiceTests
         savedProduct.IsActive.Should().BeTrue();
     }
 
+    [Fact]
+    public async Task CreateAsync_WithZeroPrice_ShouldThrowValidationError()
+    {
+        // Arrange
+        await using var db = _fixture.CreateDbContext();
+        var service = new ProductService(db);
+
+        var dto = new CreateProductDto
+        {
+            Name = "Valid Product",
+            Brand = "Nike",
+            Description = "Test",
+            Price = 0,
+            SizesCsv = "8,9",
+            StockQty = 5,
+            ImageUrl = "",
+            Category = "Sneakers"
+        };
+
+        // Act
+        var act = () => service.CreateAsync(dto);
+
+        // Assert
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("*Price must be between*");
+    }
+
+    [Fact]
+    public async Task CreateAsync_WithStockQtyAboveMaximum_ShouldThrowValidationError()
+    {
+        // Arrange
+        await using var db = _fixture.CreateDbContext();
+        var service = new ProductService(db);
+
+        var dto = new CreateProductDto
+        {
+            Name = "Valid Product",
+            Brand = "Nike",
+            Description = "Test",
+            Price = 99,
+            SizesCsv = "8,9",
+            StockQty = 10001,
+            ImageUrl = "",
+            Category = "Sneakers"
+        };
+
+        // Act
+        var act = () => service.CreateAsync(dto);
+
+        // Assert
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("*Stock quantity must be between 0 and 10000.*");
+    }
+
+    [Fact]
+    public async Task CreateAsync_WithTooLongName_ShouldThrowValidationError()
+    {
+        // Arrange
+        await using var db = _fixture.CreateDbContext();
+        var service = new ProductService(db);
+
+        var dto = new CreateProductDto
+        {
+            Name = new string('N', 201),
+            Brand = "Nike",
+            Description = "Test",
+            Price = 99,
+            SizesCsv = "8,9",
+            StockQty = 5,
+            ImageUrl = "",
+            Category = "Sneakers"
+        };
+
+        // Act
+        var act = () => service.CreateAsync(dto);
+
+        // Assert
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("*Product name must be between 3 and 200 characters.*");
+    }
+
     #endregion
 
     #region Delete Tests
@@ -363,6 +444,37 @@ public class ProductServiceTests
 
         // Assert
         result.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task DeleteAsync_WithZeroStockProduct_ShouldReturnTrue()
+    {
+        // Arrange
+        await using var db = _fixture.CreateDbContext();
+        var productId = Guid.NewGuid();
+        db.Products.Add(new Product
+        {
+            Id = productId,
+            Name = "Zero Stock",
+            Brand = "Brand",
+            Price = 100,
+            SizesCsv = "8,9",
+            StockQty = 0,
+            ImageUrl = "",
+            Description = "",
+            Category = "Test",
+            IsActive = true
+        });
+        await db.SaveChangesAsync();
+
+        var service = new ProductService(db);
+
+        // Act
+        var result = await service.DeleteAsync(productId);
+
+        // Assert
+        result.Should().BeTrue();
+        (await db.Products.FirstAsync(x => x.Id == productId)).IsActive.Should().BeFalse();
     }
 
     #endregion
