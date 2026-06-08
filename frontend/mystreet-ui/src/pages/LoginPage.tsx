@@ -37,6 +37,7 @@ export default function LoginPage() {
           <button type="submit">Login</button>
         </form>
       </div>
+      <p><Link to="/products">Browse products</Link></p>
       <p><Link to="/register">Create account</Link></p>
     </div>
   );

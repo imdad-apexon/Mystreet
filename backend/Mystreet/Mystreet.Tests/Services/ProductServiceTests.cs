@@ -214,6 +214,36 @@ public class ProductServiceTests
         result.Should().BeNull();
     }
 
+    [Fact]
+    public async Task GetByIdAsync_ShouldReturnNull_WhenProductIsInactive()
+    {
+        // Arrange
+        await using var db = _fixture.CreateDbContext();
+        var id = Guid.NewGuid();
+        db.Products.Add(new Product
+        {
+            Id = id,
+            Name = "Inactive Product",
+            Brand = "Brand",
+            Price = 100,
+            SizesCsv = "7,8",
+            StockQty = 5,
+            ImageUrl = "",
+            Description = "",
+            Category = "Sneakers",
+            IsActive = false
+        });
+        await db.SaveChangesAsync();
+
+        var service = new ProductService(db);
+
+        // Act
+        var result = await service.GetByIdAsync(id);
+
+        // Assert
+        result.Should().BeNull();
+    }
+
     #endregion
 
     #region Create Tests
@@ -316,7 +346,8 @@ public class ProductServiceTests
 
         // Assert
         result.Should().BeTrue();
-        (await db.Products.CountAsync()).Should().Be(0);
+        (await db.Products.CountAsync()).Should().Be(1);
+        (await db.Products.FirstAsync(x => x.Id == productId)).IsActive.Should().BeFalse();
     }
 
     [Fact]

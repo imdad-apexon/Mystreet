@@ -19,6 +19,7 @@ export default function ProductDetailPage() {
   const [size, setSize] = useState('');
   const [sizeError, setSizeError] = useState('');
   const [quantity, setQuantity] = useState(1);
+  const [imageError, setImageError] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -30,6 +31,10 @@ export default function ProductDetailPage() {
         .finally(() => setLoading(false));
     }
   }, [id]);
+
+  useEffect(() => {
+    setImageError(false);
+  }, [product?.id]);
 
   if (!product && !loading) {
     return (
@@ -50,6 +55,7 @@ export default function ProductDetailPage() {
   }
 
   const sizes = product!.sizesCsv.split(',');
+  const hasImage = Boolean(product!.imageUrl?.trim()) && !imageError;
 
   const handleAdd = () => {
     if (!size) {
@@ -75,7 +81,16 @@ export default function ProductDetailPage() {
     <div className="container detail-page">
       <Link to="/products" className="back-link">← Back to Products</Link>
       <div className="product-image-section">
-        <img src={getImageUrl(product!.imageUrl)} alt={product!.name} className="product-image" />
+        {hasImage ? (
+          <img
+            src={getImageUrl(product!.imageUrl)}
+            alt={product!.name}
+            className="product-image"
+            onError={() => setImageError(true)}
+          />
+        ) : (
+          <div className="product-image-placeholder">No image</div>
+        )}
       </div>
       <div className="card product-card">
         <div className="product-header">

@@ -53,7 +53,7 @@ public class ProductService : IProductService
 
     public async Task<ProductDto?> GetByIdAsync(Guid id)
     {
-        var x = await _db.Products.FindAsync(id);
+        var x = await _db.Products.FirstOrDefaultAsync(p => p.Id == id && p.IsActive);
         return x is null ? null : new ProductDto
         {
             Id = x.Id,
@@ -111,7 +111,7 @@ public class ProductService : IProductService
         var product = await _db.Products.FindAsync(id);
         if (product is null) return false;
 
-        _db.Products.Remove(product);
+        product.IsActive = false;
         await _db.SaveChangesAsync();
         return true;
     }
