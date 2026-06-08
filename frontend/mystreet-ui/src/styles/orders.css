@@ -4,6 +4,34 @@
   overflow: hidden;
 }
 
+.admin-orders-success {
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  border: 1px solid var(--success);
+  border-radius: 10px;
+  background: var(--success-soft);
+  color: var(--success);
+  font-weight: 700;
+}
+
+.status-update-group {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.admin-orders-success-inline {
+  margin: 0 0 0 16px;
+  padding: 6px 10px;
+  border: 1px solid var(--success);
+  border-radius: 8px;
+  background: var(--success-soft);
+  color: var(--success);
+  font-size: 12px;
+  font-weight: 700;
+}
+
 .order-card__header {
   display: grid;
   grid-template-columns: repeat(3, 1fr) auto;

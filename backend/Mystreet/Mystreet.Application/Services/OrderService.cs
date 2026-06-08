@@ -114,11 +114,15 @@ public class OrderService : IOrderService
     public async Task<bool> CancelAsync(Guid userId, Guid orderId, bool isAdmin)
     {
         var order = isAdmin
-            ? await _db.Orders.FirstOrDefaultAsync(x => x.Id == orderId)
-            : await _db.Orders.FirstOrDefaultAsync(x => x.Id == orderId && x.UserId == userId);
+            ? await _db.Orders.Include(x => x.Items).FirstOrDefaultAsync(x => x.Id == orderId)
+            : await _db.Orders.Include(x => x.Items).FirstOrDefaultAsync(x => x.Id == orderId && x.UserId == userId);
 
         if (order is null) return false;
         if (order.Status == OrderStatus.Delivered) throw new InvalidOperationException("Delivered orders cannot be cancelled.");
+
+        if (order.Status == OrderStatus.Cancelled) return true;
+
+        await RestoreStockForOrderAsync(order);
 
         order.Status = OrderStatus.Cancelled;
         await _db.SaveChangesAsync();
@@ -155,11 +159,30 @@ public class OrderService : IOrderService
 
     public async Task<bool> UpdateStatusAsync(Guid orderId, OrderStatus status)
     {
-        var order = await _db.Orders.FirstOrDefaultAsync(x => x.Id == orderId);
+        var order = await _db.Orders.Include(x => x.Items).FirstOrDefaultAsync(x => x.Id == orderId);
         if (order is null) return false;
+
+        if (order.Status != OrderStatus.Cancelled && status == OrderStatus.Cancelled)
+            await RestoreStockForOrderAsync(order);
 
         order.Status = status;
         await _db.SaveChangesAsync();
         return true;
+    }
+
+    private async Task RestoreStockForOrderAsync(Order order)
+    {
+        if (order.Items.Count == 0) return;
+
+        var productIds = order.Items.Select(x => x.ProductId).Distinct().ToList();
+        var products = await _db.Products
+            .Where(x => productIds.Contains(x.Id))
+            .ToDictionaryAsync(x => x.Id);
+
+        foreach (var item in order.Items)
+        {
+            if (products.TryGetValue(item.ProductId, out var product))
+                product.StockQty += item.Quantity;
+        }
     }
 }

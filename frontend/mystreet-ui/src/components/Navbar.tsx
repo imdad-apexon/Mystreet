@@ -1,11 +1,20 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 
 export default function Navbar() {
   const { isAuthenticated, isAdmin, logout } = useAuth();
   const { totalQty } = useCart();
+  const location = useLocation();
   const navigate = useNavigate();
+
+  const isProductsActive =
+    location.pathname === '/' ||
+    location.pathname === '/products' ||
+    location.pathname.startsWith('/products/');
+
+  const navClass = ({ isActive }: { isActive: boolean }) =>
+    isActive ? 'nav-link active' : 'nav-link';
 
   const handleLogout = () => {
     logout();
@@ -16,15 +25,38 @@ export default function Navbar() {
     <nav className="nav">
       <Link to="/" className="brand">MyStreeT</Link>
       <div className="nav-links">
-        {isAuthenticated && <Link to="/cart">Cart ({totalQty})</Link>}
-                {isAuthenticated && <Link to="/">Products </Link>}
-        {!isAdmin && isAuthenticated  && <Link to="/orders">Orders</Link>}
-        {isAdmin && <Link to="/admin/products">Admin</Link>}
-        {isAdmin && <Link to="/admin/orders">Admin Orders</Link>}
+        {isAuthenticated && (
+          <NavLink to="/cart" className={navClass}>
+            Cart ({totalQty})
+          </NavLink>
+        )}
+        {isAuthenticated && (
+          <NavLink
+            to="/products"
+            className={isProductsActive ? 'nav-link active' : 'nav-link'}
+          >
+            Products
+          </NavLink>
+        )}
+        {!isAdmin && isAuthenticated && (
+          <NavLink to="/orders" className={navClass}>
+            Orders
+          </NavLink>
+        )}
+        {isAdmin && (
+          <NavLink to="/admin/products" className={navClass}>
+            Admin
+          </NavLink>
+        )}
+        {isAdmin && (
+          <NavLink to="/admin/orders" className={navClass}>
+            Admin Orders
+          </NavLink>
+        )}
         {!isAuthenticated ? (
           <>
-            <Link to="/login">Login</Link>
-            <Link to="/register">Register</Link>
+            <NavLink to="/login" className={navClass}>Login</NavLink>
+            <NavLink to="/register" className={navClass}>Register</NavLink>
           </>
         ) : (
           <button onClick={handleLogout}>Logout</button>

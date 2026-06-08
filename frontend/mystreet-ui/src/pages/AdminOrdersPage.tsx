@@ -36,6 +36,8 @@ export default function AdminOrdersPage() {
   const [pendingStatuses, setPendingStatuses] = useState<Record<string, number>>({});
   const [saving, setSaving] = useState<string | null>(null);
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
+  const [successOrderId, setSuccessOrderId] = useState<string | null>(null);
 
   const load = async () => {
     try {
@@ -58,15 +60,33 @@ export default function AdminOrdersPage() {
     );
   }, [orders]);
 
+  useEffect(() => {
+    if (!successMessage) return;
+
+    const timer = window.setTimeout(() => {
+      setSuccessMessage('');
+      setSuccessOrderId(null);
+    }, 2500);
+
+    return () => window.clearTimeout(timer);
+  }, [successMessage]);
+
   const onSave = async (id: string) => {
     const status = pendingStatuses[id];
     if (status === undefined) return;
 
     setSaving(id);
     setError('');
+    setSuccessMessage('');
+    setSuccessOrderId(null);
     try {
       await orderService.updateStatus(id, status);
       setOrders(prev => prev.map(o => (o.id === id ? { ...o, status } : o)));
+      setSuccessMessage('Status updated successfully.');
+      setSuccessOrderId(id);
+
+      // Notify other screens (e.g. Admin Products) to refresh related data.
+      window.dispatchEvent(new Event('inventory-updated'));
     } catch {
       setError('Failed to update status.');
     } finally {
@@ -114,32 +134,39 @@ export default function AdminOrdersPage() {
               <span style={{ color: '#565959', fontSize: 13 }}>
                 Payment: <strong>{o.paymentMethod}</strong>
               </span>
-              <label style={{ marginLeft: 16, display: 'inline-flex', alignItems: 'center', gap: 8, whiteSpace: 'nowrap' }}>
-                Change status:
-                <select
-                  value={pendingStatuses[o.id] ?? o.status}
-                  disabled={saving === o.id}
-                  onChange={e =>
-                    setPendingStatuses(prev => ({
-                      ...prev,
-                      [o.id]: Number(e.target.value)
-                    }))
-                  }
-                  style={{ minWidth: 120 }}
-                >
-                  {Object.entries(ORDER_STATUS_LABELS).map(([val, label]) => (
-                    <option key={val} value={val}>{label}</option>
-                  ))}
-                </select>
-                <button
-                  type="button"
-                  className="btn-amazon"
-                  disabled={saving === o.id || (pendingStatuses[o.id] ?? o.status) === o.status}
-                  onClick={() => onSave(o.id)}
-                >
-                  {saving === o.id ? 'Updating...' : 'Update'}
-                </button>
-              </label>
+              <div className="status-update-group">
+                <label style={{ marginLeft: 16, display: 'inline-flex', alignItems: 'center', gap: 8, whiteSpace: 'nowrap' }}>
+                  Change status:
+                  <select
+                    value={pendingStatuses[o.id] ?? o.status}
+                    disabled={saving === o.id}
+                    onChange={e =>
+                      setPendingStatuses(prev => ({
+                        ...prev,
+                        [o.id]: Number(e.target.value)
+                      }))
+                    }
+                    style={{ minWidth: 120 }}
+                  >
+                    {Object.entries(ORDER_STATUS_LABELS).map(([val, label]) => (
+                      <option key={val} value={val}>{label}</option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    className="btn-amazon"
+                    disabled={saving === o.id || (pendingStatuses[o.id] ?? o.status) === o.status}
+                    onClick={() => onSave(o.id)}
+                  >
+                    {saving === o.id ? 'Updating...' : 'Update'}
+                  </button>
+                </label>
+                {successOrderId === o.id && successMessage && (
+                  <p className="admin-orders-success-inline" role="status" aria-live="polite">
+                    {successMessage}
+                  </p>
+                )}
+              </div>
               
             </div>
 
