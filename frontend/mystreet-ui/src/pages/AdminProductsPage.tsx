@@ -9,6 +9,7 @@ export default function AdminProductsPage() {
   const [loading, setLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [search, setSearch] = useState('');
+  const [stockFilter, setStockFilter] = useState<'all' | 'in-stock' | 'low-stock' | 'out-of-stock'>('all');
 
   const load = async () => {
     setLoading(true);
@@ -61,9 +62,17 @@ export default function AdminProductsPage() {
   const truncateName = (name: string) =>
     name.length > 30 ? `${name.slice(0, 30)}...` : name;
 
+  const matchesStockFilter = (qty: number) => {
+    if (stockFilter === 'all') return true;
+    if (stockFilter === 'out-of-stock') return qty === 0;
+    if (stockFilter === 'low-stock') return qty > 0 && qty < 10;
+    return qty >= 10;
+  };
+
   const filteredProducts = products.filter(p =>
-    p.name.toLowerCase().includes(search.toLowerCase()) ||
-    p.brand.toLowerCase().includes(search.toLowerCase())
+    (p.name.toLowerCase().includes(search.toLowerCase()) ||
+      p.brand.toLowerCase().includes(search.toLowerCase()))
+    && matchesStockFilter(p.stockQty)
   );
 
   return (
@@ -78,13 +87,27 @@ export default function AdminProductsPage() {
           onChange={e => setSearch(e.target.value)}
           className="search-input"
         />
+        <select
+          value={stockFilter}
+          onChange={e => setStockFilter(e.target.value as 'all' | 'in-stock' | 'low-stock' | 'out-of-stock')}
+          className="search-input"
+          aria-label="Filter by stock status"
+        >
+          <option value="all">All Stock Statuses</option>
+          <option value="in-stock">In Stock (10+)</option>
+          <option value="low-stock">Low Stock (1-9)</option>
+          <option value="out-of-stock">Out of Stock (0)</option>
+        </select>
         <button
           type="button"
           className="btn-small btn-secondary"
-          onClick={() => setSearch('')}
-          disabled={!search}
+          onClick={() => {
+            setSearch('');
+            setStockFilter('all');
+          }}
+          disabled={!search && stockFilter === 'all'}
         >
-          Clear
+          Clear Filters
         </button>
         <Link to="/admin/products/new" className="btn-amazon">
           ➕ Add Product

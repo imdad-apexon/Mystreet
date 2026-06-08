@@ -13,6 +13,7 @@ public class ProductService : IProductService
     private const int MaxStockQty = 10000;
     private const int MinNameLength = 3;
     private const int MaxNameLength = 200;
+    private const string DuplicateProductMessage = "A product with the same name, brand, category, price, and sizes already exists.";
 
     private readonly AppDbContext _db;
     public ProductService(AppDbContext db) => _db = db;
@@ -77,6 +78,7 @@ public class ProductService : IProductService
     public async Task<ProductDto> CreateAsync(CreateProductDto dto)
     {
         ValidateAndNormalize(dto);
+        await EnsureNoActiveDuplicateAsync(dto);
 
         var product = new Product
         {
@@ -98,10 +100,11 @@ public class ProductService : IProductService
 
     public async Task<ProductDto?> UpdateAsync(Guid id, CreateProductDto dto)
     {
-        ValidateAndNormalize(dto);
-
         var product = await _db.Products.FindAsync(id);
         if (product is null) return null;
+
+        ValidateAndNormalize(dto);
+        await EnsureNoActiveDuplicateAsync(dto, id);
 
         product.Name = dto.Name;
         product.Brand = dto.Brand;
@@ -133,6 +136,23 @@ public class ProductService : IProductService
 
         if (dto.StockQty < 0 || dto.StockQty > MaxStockQty)
             throw new InvalidOperationException($"Stock quantity must be between 0 and {MaxStockQty}.");
+    }
+
+    private async Task EnsureNoActiveDuplicateAsync(CreateProductDto dto, Guid? excludingProductId = null)
+    {
+        var duplicateQuery = _db.Products.Where(p =>
+            p.IsActive
+            && p.Name.ToLower() == dto.Name.ToLower()
+            && p.Brand.ToLower() == dto.Brand.ToLower()
+            && p.Category.ToLower() == dto.Category.ToLower()
+            && p.SizesCsv.ToLower() == dto.SizesCsv.ToLower()
+            && p.Price == dto.Price);
+
+        if (excludingProductId.HasValue)
+            duplicateQuery = duplicateQuery.Where(p => p.Id != excludingProductId.Value);
+
+        if (await duplicateQuery.AnyAsync())
+            throw new InvalidOperationException(DuplicateProductMessage);
     }
 
     public async Task<bool> DeleteAsync(Guid id)

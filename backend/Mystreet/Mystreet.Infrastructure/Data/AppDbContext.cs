@@ -30,6 +30,7 @@ public class AppDbContext : DbContext
             e.Property(x => x.Name).IsRequired().HasMaxLength(200);
             e.Property(x => x.Brand).IsRequired().HasMaxLength(100);
             e.Property(x => x.Price).HasColumnType("decimal(18,2)");
+            e.HasIndex(x => new { x.Name, x.Brand, x.Category, x.Price, x.SizesCsv, x.IsActive }).IsUnique();
         });
 
         modelBuilder.Entity<Order>(e =>

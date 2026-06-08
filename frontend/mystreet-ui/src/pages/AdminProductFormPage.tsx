@@ -39,6 +39,8 @@ export default function AdminProductFormPage() {
     category: 'Sneakers'
   });
 
+  const nameLength = form.name.length;
+
   useEffect(() => {
     if (!id) return;
 
@@ -143,6 +145,9 @@ export default function AdminProductFormPage() {
               required
             />
             <small className="field-help">{MIN_NAME_LENGTH}-{MAX_NAME_LENGTH} characters.</small>
+            <small className={`field-help char-counter ${nameLength > MAX_NAME_LENGTH - 10 ? 'char-counter--warning' : ''}`}>
+              {nameLength}/{MAX_NAME_LENGTH}
+            </small>
           </div>
 
           <div className="form-group">

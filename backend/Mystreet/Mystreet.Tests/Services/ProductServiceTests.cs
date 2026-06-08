@@ -395,6 +395,47 @@ public class ProductServiceTests
             .WithMessage("*Product name must be between 3 and 200 characters.*");
     }
 
+    [Fact]
+    public async Task CreateAsync_WithDuplicateActiveProduct_ShouldThrowValidationError()
+    {
+        // Arrange
+        await using var db = _fixture.CreateDbContext();
+        db.Products.Add(new Product
+        {
+            Id = Guid.NewGuid(),
+            Name = "Air Zoom",
+            Brand = "Nike",
+            Description = "Running shoe",
+            Price = 120,
+            SizesCsv = "8,9,10",
+            StockQty = 10,
+            ImageUrl = "",
+            Category = "Sneakers",
+            IsActive = true
+        });
+        await db.SaveChangesAsync();
+
+        var service = new ProductService(db);
+        var duplicateDto = new CreateProductDto
+        {
+            Name = "  air zoom  ",
+            Brand = "NIKE",
+            Description = "Another description",
+            Price = 120,
+            SizesCsv = "8,9,10",
+            StockQty = 3,
+            ImageUrl = "",
+            Category = "sneakers"
+        };
+
+        // Act
+        var act = () => service.CreateAsync(duplicateDto);
+
+        // Assert
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("*same name, brand, category, price, and sizes already exists*");
+    }
+
     #endregion
 
     #region Delete Tests
@@ -523,6 +564,65 @@ public class ProductServiceTests
         result!.Name.Should().Be("Updated Name");
         result.Brand.Should().Be("Updated Brand");
         result.Price.Should().Be(150);
+    }
+
+    [Fact]
+    public async Task UpdateAsync_ToDuplicateActiveProduct_ShouldThrowValidationError()
+    {
+        // Arrange
+        await using var db = _fixture.CreateDbContext();
+        var duplicateTargetId = Guid.NewGuid();
+        var updateCandidateId = Guid.NewGuid();
+
+        db.Products.AddRange(
+            new Product
+            {
+                Id = duplicateTargetId,
+                Name = "Gel Nimbus",
+                Brand = "Asics",
+                Description = "Target",
+                Price = 160,
+                SizesCsv = "8,9,10",
+                StockQty = 20,
+                ImageUrl = "",
+                Category = "Running",
+                IsActive = true
+            },
+            new Product
+            {
+                Id = updateCandidateId,
+                Name = "Original",
+                Brand = "Asics",
+                Description = "Candidate",
+                Price = 130,
+                SizesCsv = "7,8",
+                StockQty = 8,
+                ImageUrl = "",
+                Category = "Running",
+                IsActive = true
+            }
+        );
+        await db.SaveChangesAsync();
+
+        var service = new ProductService(db);
+        var updateDto = new CreateProductDto
+        {
+            Name = "gel nimbus",
+            Brand = "ASICS",
+            Description = "Updated",
+            Price = 160,
+            SizesCsv = "8,9,10",
+            StockQty = 4,
+            ImageUrl = "",
+            Category = "running"
+        };
+
+        // Act
+        var act = () => service.UpdateAsync(updateCandidateId, updateDto);
+
+        // Assert
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("*same name, brand, category, price, and sizes already exists*");
     }
 
     #endregion

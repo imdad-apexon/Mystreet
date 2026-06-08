@@ -29,6 +29,15 @@
   color: var(--text-muted);
 }
 
+.char-counter {
+  text-align: right;
+}
+
+.char-counter--warning {
+  color: #b45309;
+  font-weight: 700;
+}
+
 .form-group textarea {
   resize: vertical;
   min-height: 80px;
