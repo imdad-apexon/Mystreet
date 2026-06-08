@@ -178,6 +178,12 @@ button {
   background: rgba(255, 255, 255, 0.14);
 }
 
+.nav .nav-link.active {
+  border-color: rgba(255, 255, 255, 0.38);
+  background: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+}
+
 .container,
 .orders-page {
   width: min(1140px, 100% - 28px);
@@ -216,6 +222,17 @@ button {
   padding: 16px;
 }
 
+.no-products-found {
+  margin-top: 18px;
+  padding: 14px 16px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--surface-soft);
+  color: var(--text-muted);
+  font-weight: 600;
+  text-align: center;
+}
+
 .card img,
 .cart-row img,
 .detail img {
@@ -241,6 +258,9 @@ button {
 .product-list-card__image {
   max-width: 100%;
   width: 100%;
+  align-self: center;
+  display: block;
+  margin: 0 auto;
   aspect-ratio: 1 / 1;
   object-fit: cover;
   border-radius: var(--radius-md);
@@ -460,6 +480,7 @@ button:disabled,
 
 .product-image-section {
   position: static;
+  margin-bottom: 18px;
 }
 
 .product-image {

@@ -17,6 +17,7 @@ export default function ProductDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [size, setSize] = useState('');
+  const [sizeError, setSizeError] = useState('');
   const [quantity, setQuantity] = useState(1);
 
   useEffect(() => {
@@ -51,7 +52,11 @@ export default function ProductDetailPage() {
   const sizes = product!.sizesCsv.split(',');
 
   const handleAdd = () => {
-    if (!size) return alert('Select a size');
+    if (!size) {
+      setSizeError('Please select a size');
+      return;
+    }
+    setSizeError('');
     if (!Number.isFinite(quantity) || quantity < 1) return alert('Quantity must be at least 1');
     if (quantity > product!.stockQty) return alert(`Only ${product!.stockQty} item(s) available in stock`);
     addItem({
@@ -89,10 +94,19 @@ export default function ProductDetailPage() {
         <div className="product-form">
           <div className="form-group">
             <label htmlFor="size">Size</label>
-            <select id="size" value={size} onChange={e => setSize(e.target.value)} className="size-select">
+            <select
+              id="size"
+              value={size}
+              onChange={e => {
+                setSize(e.target.value);
+                if (e.target.value) setSizeError('');
+              }}
+              className="size-select"
+            >
               <option value="">Choose a size...</option>
               {sizes.map(s => <option key={s} value={s}>{s}</option>)}
             </select>
+            {sizeError && <p className="error">{sizeError}</p>}
           </div>
           
           <div className="form-group">

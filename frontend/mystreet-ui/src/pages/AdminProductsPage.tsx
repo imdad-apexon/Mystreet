@@ -20,6 +20,32 @@ export default function AdminProductsPage() {
     load();
   }, []);
 
+  useEffect(() => {
+    const onInventoryUpdated = () => {
+      load();
+    };
+
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        load();
+      }
+    };
+
+    const onWindowFocus = () => {
+      load();
+    };
+
+    window.addEventListener('inventory-updated', onInventoryUpdated);
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    window.addEventListener('focus', onWindowFocus);
+
+    return () => {
+      window.removeEventListener('inventory-updated', onInventoryUpdated);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+      window.removeEventListener('focus', onWindowFocus);
+    };
+  }, []);
+
   const remove = async (id: string) => {
     await productService.remove(id);
     setDeleteId(null);
@@ -56,13 +82,15 @@ export default function AdminProductsPage() {
 
       {loading ? (
         <p>Loading products...</p>
-      ) : filteredProducts.length === 0 ? (
+      ) : products.length === 0 ? (
         <div className="empty">
-          <p>{search ? 'No products match your search.' : 'No products yet.'}</p>
+          <p>No products yet.</p>
           <Link to="/admin/products/new" className="btn-amazon" style={{ marginTop: '12px' }}>
             ➕ Add First Product
           </Link>
         </div>
+      ) : filteredProducts.length === 0 ? (
+        <p className="no-products-found">No Product Found</p>
       ) : (
         <div className="admin-products-table">
           <table>

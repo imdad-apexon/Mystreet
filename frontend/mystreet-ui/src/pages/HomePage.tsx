@@ -50,7 +50,13 @@ export default function HomePage() {
         />
         <button className="filter-btn" onClick={loadProducts}>Filter</button>
       </div>
-      {loading ? <p>Loading...</p> : <div className="grid">{products.map(p => <ProductCard key={p.id} product={p} />)}</div>}
+      {loading ? (
+        <p>Loading...</p>
+      ) : products.length === 0 ? (
+        <p className="no-products-found">No Product Found</p>
+      ) : (
+        <div className="grid">{products.map(p => <ProductCard key={p.id} product={p} />)}</div>
+      )}
     </div>
   );
 }

@@ -39,6 +39,7 @@ export const orderService = {
   },
   cancel: async (id: string) => {
     await api.post(`/orders/${id}/cancel`);
+    window.dispatchEvent(new Event('inventory-updated'));
   },
   all: async () => {
     const res = await api.get<unknown>('/orders/all');
@@ -46,5 +47,6 @@ export const orderService = {
   },
   updateStatus: async (id: string, status: number) => {
     await api.put(`/orders/${id}/status`, { status });
+    window.dispatchEvent(new Event('inventory-updated'));
   }
 };

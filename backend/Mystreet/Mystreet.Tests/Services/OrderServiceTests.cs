@@ -164,6 +164,22 @@ public class OrderServiceTests
         await using var db = _fixture.CreateDbContext();
         var userId = Guid.NewGuid();
         var orderId = Guid.NewGuid();
+        var productId = Guid.NewGuid();
+
+        db.Products.Add(new Product
+        {
+            Id = productId,
+            Name = "Air Max 90",
+            Brand = "Nike",
+            Price = 120,
+            SizesCsv = "8,9,10",
+            StockQty = 8,
+            ImageUrl = "",
+            Description = "",
+            Category = "Sneakers",
+            IsActive = true
+        });
+
         db.Orders.Add(new Order
         {
             Id = orderId,
@@ -171,13 +187,26 @@ public class OrderServiceTests
             Status = OrderStatus.Pending,
             ShippingAddress = "Mumbai",
             PaymentMethod = "COD",
-            TotalAmount = 100
+            TotalAmount = 100,
+            Items = new List<OrderItem>
+            {
+                new()
+                {
+                    Id = Guid.NewGuid(),
+                    ProductId = productId,
+                    ProductName = "Air Max 90",
+                    Quantity = 2,
+                    Size = "9",
+                    UnitPrice = 120
+                }
+            }
         });
         await db.SaveChangesAsync();
         var service = new OrderService(db);
         var result = await service.CancelAsync(userId, orderId, false);
         result.Should().BeTrue();
         (await db.Orders.FirstAsync(x => x.Id == orderId)).Status.Should().Be(OrderStatus.Cancelled);
+        (await db.Products.FirstAsync(x => x.Id == productId)).StockQty.Should().Be(10);
     }
 
     [Fact]
@@ -222,6 +251,59 @@ public class OrderServiceTests
         var result = await service.UpdateStatusAsync(orderId, OrderStatus.Shipped);
         result.Should().BeTrue();
         (await db.Orders.FirstAsync(x => x.Id == orderId)).Status.Should().Be(OrderStatus.Shipped);
+    }
+
+    [Fact]
+    public async Task UpdateStatusAsync_ShouldRestoreStock_WhenStatusChangesToCancelled()
+    {
+        await using var db = _fixture.CreateDbContext();
+        var productId = Guid.NewGuid();
+        var orderId = Guid.NewGuid();
+
+        db.Products.Add(new Product
+        {
+            Id = productId,
+            Name = "Ultraboost",
+            Brand = "Adidas",
+            Price = 140,
+            SizesCsv = "8,9,10",
+            StockQty = 6,
+            ImageUrl = "",
+            Description = "",
+            Category = "Sneakers",
+            IsActive = true
+        });
+
+        db.Orders.Add(new Order
+        {
+            Id = orderId,
+            UserId = Guid.NewGuid(),
+            Status = OrderStatus.Pending,
+            ShippingAddress = "Mumbai",
+            PaymentMethod = "COD",
+            TotalAmount = 280,
+            Items = new List<OrderItem>
+            {
+                new()
+                {
+                    Id = Guid.NewGuid(),
+                    ProductId = productId,
+                    ProductName = "Ultraboost",
+                    Quantity = 2,
+                    Size = "9",
+                    UnitPrice = 140
+                }
+            }
+        });
+
+        await db.SaveChangesAsync();
+        var service = new OrderService(db);
+
+        var result = await service.UpdateStatusAsync(orderId, OrderStatus.Cancelled);
+
+        result.Should().BeTrue();
+        (await db.Orders.FirstAsync(x => x.Id == orderId)).Status.Should().Be(OrderStatus.Cancelled);
+        (await db.Products.FirstAsync(x => x.Id == productId)).StockQty.Should().Be(8);
     }
 
     [Fact]
