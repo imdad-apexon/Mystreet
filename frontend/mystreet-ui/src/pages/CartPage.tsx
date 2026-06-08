@@ -9,6 +9,7 @@ export default function CartPage() {
   const navigate = useNavigate();
   const [stockByProductId, setStockByProductId] = useState<Record<string, number>>({});
   const [stockError, setStockError] = useState('');
+  const [stockNotice, setStockNotice] = useState('');
 
   useEffect(() => {
     const productIds = [...new Set(items.map(x => x.productId))];
@@ -16,33 +17,55 @@ export default function CartPage() {
     if (productIds.length === 0) {
       setStockByProductId({});
       setStockError('');
+      setStockNotice('');
       return;
     }
 
     let cancelled = false;
     const loadStock = async () => {
-      try {
-        const products = await Promise.all(productIds.map(id => productService.getById(id)));
-        if (cancelled) return;
-
-        const stockMap: Record<string, number> = {};
-        for (const p of products) {
-          stockMap[p.id] = p.stockQty;
+      const results = await Promise.all(productIds.map(async (id) => {
+        try {
+          const product = await productService.getById(id);
+          return { id, product };
+        } catch {
+          return { id, product: null };
         }
-        setStockByProductId(stockMap);
-        setStockError('');
-      } catch {
-        if (cancelled) return;
-        setStockByProductId({});
-        setStockError('Unable to validate current stock. Please refresh and try again.');
+      }));
+
+      if (cancelled) return;
+
+      const stockMap: Record<string, number> = {};
+      const missingProductIds = new Set<string>();
+
+      for (const result of results) {
+        if (!result.product) {
+          missingProductIds.add(result.id);
+          continue;
+        }
+
+        stockMap[result.product.id] = result.product.stockQty;
       }
+
+      if (missingProductIds.size > 0) {
+        const removedItems = items.filter(item => missingProductIds.has(item.productId));
+        for (const removed of removedItems) {
+          removeItem(removed.productId, removed.size);
+        }
+
+        setStockNotice('Some deleted products were removed from your cart.');
+      } else {
+        setStockNotice('');
+      }
+
+      setStockByProductId(stockMap);
+      setStockError('');
     };
 
     void loadStock();
     return () => {
       cancelled = true;
     };
-  }, [items]);
+  }, [items, removeItem]);
 
   const hasStockIssues = useMemo(() => {
     return items.some(item => {
@@ -93,6 +116,7 @@ export default function CartPage() {
             ))}
           </div>
           {stockError && <p className="error">{stockError}</p>}
+          {stockNotice && <p className="note">{stockNotice}</p>}
           {hasStockIssues && <p className="error">Some items exceed available stock. Update your cart to continue.</p>}
           <h3>Total: ₹{totalAmount.toFixed(2)}</h3>
           <button onClick={() => navigate('/checkout')} disabled={checkoutDisabled}>Checkout</button>

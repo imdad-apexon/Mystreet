@@ -58,6 +58,9 @@ export default function AdminProductsPage() {
     return { label: 'In Stock', color: '#27ae60' };
   };
 
+  const truncateName = (name: string) =>
+    name.length > 30 ? `${name.slice(0, 30)}...` : name;
+
   const filteredProducts = products.filter(p =>
     p.name.toLowerCase().includes(search.toLowerCase()) ||
     p.brand.toLowerCase().includes(search.toLowerCase())
@@ -75,6 +78,14 @@ export default function AdminProductsPage() {
           onChange={e => setSearch(e.target.value)}
           className="search-input"
         />
+        <button
+          type="button"
+          className="btn-small btn-secondary"
+          onClick={() => setSearch('')}
+          disabled={!search}
+        >
+          Clear
+        </button>
         <Link to="/admin/products/new" className="btn-amazon">
           ➕ Add Product
         </Link>
@@ -108,18 +119,32 @@ export default function AdminProductsPage() {
             <tbody>
               {filteredProducts.map(p => {
                 const stockStatus = getStockStatus(p.stockQty);
+                const hasImage = Boolean(p.imageUrl?.trim());
                 return (
                   <tr key={p.id}>
                     <td className="img-cell">
-                      <img
-                        src={getImageUrl(p.imageUrl)}
-                        alt={p.name}
-                        className="product-thumb"
-                        onError={e => ((e.target as HTMLImageElement).style.visibility = 'hidden')}
-                      />
+                      {hasImage ? (
+                        <img
+                          src={getImageUrl(p.imageUrl)}
+                          alt={p.name}
+                          className="product-thumb"
+                          onError={e => {
+                            const target = e.target as HTMLImageElement;
+                            target.style.display = 'none';
+                            const fallback = target.nextElementSibling as HTMLElement | null;
+                            if (fallback) fallback.style.display = 'flex';
+                          }}
+                        />
+                      ) : null}
+                      <div
+                        className="product-thumb-placeholder"
+                        style={{ display: hasImage ? 'none' : 'flex' }}
+                      >
+                        No image
+                      </div>
                     </td>
                     <td>
-                      <strong>{p.name}</strong>
+                      <strong title={p.name}>{truncateName(p.name)}</strong>
                     </td>
                     <td>{p.brand}</td>
                     <td>₹{p.price.toFixed(2)}</td>
