@@ -13,36 +13,37 @@ public class ProductServiceTests
     {
         // Arrange
         await using var db = _fixture.CreateDbContext();
-        var product1 = new Product 
-        { 
-            Id = Guid.NewGuid(), 
-            Name = "Air Max 90", 
-            Brand = "Nike", 
-            Price = 120, 
-            SizesCsv = "7,8,9", 
-            StockQty = 10, 
-            ImageUrl = "air-max.png", 
-            Description = "Classic sneaker", 
-            Category = "Sneakers", 
-            IsActive = true 
+        var queryUnderstandingServiceMock = new Mock<IProductQueryUnderstandingService>();
+        var product1 = new Product
+        {
+            Id = Guid.NewGuid(),
+            Name = "Air Max 90",
+            Brand = "Nike",
+            Price = 120,
+            SizesCsv = "7,8,9",
+            StockQty = 10,
+            ImageUrl = "air-max.png",
+            Description = "Classic sneaker",
+            Category = "Sneakers",
+            IsActive = true
         };
-        var product2 = new Product 
-        { 
-            Id = Guid.NewGuid(), 
-            Name = "Ultraboost", 
-            Brand = "Adidas", 
-            Price = 140, 
-            SizesCsv = "9,10,11", 
-            StockQty = 12, 
-            ImageUrl = "ultra.png", 
-            Description = "Comfort shoe", 
-            Category = "Sneakers", 
-            IsActive = true 
+        var product2 = new Product
+        {
+            Id = Guid.NewGuid(),
+            Name = "Ultraboost",
+            Brand = "Adidas",
+            Price = 140,
+            SizesCsv = "9,10,11",
+            StockQty = 12,
+            ImageUrl = "ultra.png",
+            Description = "Comfort shoe",
+            Category = "Sneakers",
+            IsActive = true
         };
         db.Products.AddRange(product1, product2);
         await db.SaveChangesAsync();
 
-        var service = new ProductService(db);
+        var service = new ProductService(db, queryUnderstandingServiceMock.Object);
 
         // Act
         var result = await service.GetAllAsync(null, null, null, null, null);
@@ -64,7 +65,8 @@ public class ProductServiceTests
         );
         await db.SaveChangesAsync();
 
-        var service = new ProductService(db);
+        var queryUnderstandingServiceMock = new Mock<IProductQueryUnderstandingService>();
+        var service = new ProductService(db, queryUnderstandingServiceMock.Object);
 
         // Act
         var result = await service.GetAllAsync("Nike", null, null, null, null);
@@ -86,7 +88,8 @@ public class ProductServiceTests
         );
         await db.SaveChangesAsync();
 
-        var service = new ProductService(db);
+        var queryUnderstandingServiceMock = new Mock<IProductQueryUnderstandingService>();
+        var service = new ProductService(db, queryUnderstandingServiceMock.Object);
 
         // Act
         var result = await service.GetAllAsync("niKE", null, null, null, null);
@@ -108,7 +111,8 @@ public class ProductServiceTests
         );
         await db.SaveChangesAsync();
 
-        var service = new ProductService(db);
+        var queryUnderstandingServiceMock = new Mock<IProductQueryUnderstandingService>();
+        var service = new ProductService(db, queryUnderstandingServiceMock.Object);
 
         // Act
         var result = await service.GetAllAsync(null, null, "Sneakers", null, null);
@@ -129,7 +133,8 @@ public class ProductServiceTests
         );
         await db.SaveChangesAsync();
 
-        var service = new ProductService(db);
+        var queryUnderstandingServiceMock = new Mock<IProductQueryUnderstandingService>();
+        var service = new ProductService(db, queryUnderstandingServiceMock.Object);
 
         // Act
         var result = await service.GetAllAsync(null, "10", null, null, null);
@@ -152,7 +157,8 @@ public class ProductServiceTests
         );
         await db.SaveChangesAsync();
 
-        var service = new ProductService(db);
+        var queryUnderstandingServiceMock = new Mock<IProductQueryUnderstandingService>();
+        var service = new ProductService(db, queryUnderstandingServiceMock.Object);
 
         // Act
         var result = await service.GetAllAsync("Nike", "9", "Sneakers", null, null);
@@ -187,7 +193,8 @@ public class ProductServiceTests
         });
         await db.SaveChangesAsync();
 
-        var service = new ProductService(db);
+        var queryUnderstandingServiceMock = new Mock<IProductQueryUnderstandingService>();
+        var service = new ProductService(db, queryUnderstandingServiceMock.Object);
 
         // Act
         var result = await service.GetByIdAsync(id);
@@ -204,7 +211,8 @@ public class ProductServiceTests
     {
         // Arrange
         await using var db = _fixture.CreateDbContext();
-        var service = new ProductService(db);
+        var queryUnderstandingServiceMock = new Mock<IProductQueryUnderstandingService>();
+        var service = new ProductService(db, queryUnderstandingServiceMock.Object);
         var nonExistentId = Guid.NewGuid();
 
         // Act
@@ -235,7 +243,8 @@ public class ProductServiceTests
         });
         await db.SaveChangesAsync();
 
-        var service = new ProductService(db);
+        var queryUnderstandingServiceMock = new Mock<IProductQueryUnderstandingService>();
+        var service = new ProductService(db, queryUnderstandingServiceMock.Object);
 
         // Act
         var result = await service.GetByIdAsync(id);
@@ -253,7 +262,8 @@ public class ProductServiceTests
     {
         // Arrange
         await using var db = _fixture.CreateDbContext();
-        var service = new ProductService(db);
+        var queryUnderstandingServiceMock = new Mock<IProductQueryUnderstandingService>();
+        var service = new ProductService(db, queryUnderstandingServiceMock.Object);
 
         var dto = new CreateProductDto
         {
@@ -276,7 +286,7 @@ public class ProductServiceTests
         result.Brand.Should().Be("Puma");
         result.Price.Should().Be(99.99m);
         (await db.Products.CountAsync()).Should().Be(1);
-        
+
         var savedProduct = await db.Products.FirstAsync();
         savedProduct.SizesCsv.Should().Be("8,9,10");
         savedProduct.StockQty.Should().Be(25);
@@ -287,7 +297,8 @@ public class ProductServiceTests
     {
         // Arrange
         await using var db = _fixture.CreateDbContext();
-        var service = new ProductService(db);
+        var queryUnderstandingServiceMock = new Mock<IProductQueryUnderstandingService>();
+        var service = new ProductService(db, queryUnderstandingServiceMock.Object);
 
         var dto = new CreateProductDto
         {
@@ -309,7 +320,7 @@ public class ProductServiceTests
         result.Name.Should().Be("Test Product");
         result.Brand.Should().Be("TestBrand");
         (await db.Products.CountAsync()).Should().Be(1);
-        
+
         var savedProduct = await db.Products.FirstAsync();
         savedProduct.IsActive.Should().BeTrue();
     }
@@ -319,7 +330,8 @@ public class ProductServiceTests
     {
         // Arrange
         await using var db = _fixture.CreateDbContext();
-        var service = new ProductService(db);
+        var queryUnderstandingServiceMock = new Mock<IProductQueryUnderstandingService>();
+        var service = new ProductService(db, queryUnderstandingServiceMock.Object);
 
         var dto = new CreateProductDto
         {
@@ -346,7 +358,8 @@ public class ProductServiceTests
     {
         // Arrange
         await using var db = _fixture.CreateDbContext();
-        var service = new ProductService(db);
+        var queryUnderstandingServiceMock = new Mock<IProductQueryUnderstandingService>();
+        var service = new ProductService(db, queryUnderstandingServiceMock.Object);
 
         var dto = new CreateProductDto
         {
@@ -373,7 +386,8 @@ public class ProductServiceTests
     {
         // Arrange
         await using var db = _fixture.CreateDbContext();
-        var service = new ProductService(db);
+        var queryUnderstandingServiceMock = new Mock<IProductQueryUnderstandingService>();
+        var service = new ProductService(db, queryUnderstandingServiceMock.Object);
 
         var dto = new CreateProductDto
         {
@@ -415,7 +429,8 @@ public class ProductServiceTests
         });
         await db.SaveChangesAsync();
 
-        var service = new ProductService(db);
+        var queryUnderstandingServiceMock = new Mock<IProductQueryUnderstandingService>();
+        var service = new ProductService(db, queryUnderstandingServiceMock.Object);
         var duplicateDto = new CreateProductDto
         {
             Name = "  air zoom  ",
@@ -461,7 +476,8 @@ public class ProductServiceTests
         });
         await db.SaveChangesAsync();
 
-        var service = new ProductService(db);
+        var queryUnderstandingServiceMock = new Mock<IProductQueryUnderstandingService>();
+        var service = new ProductService(db, queryUnderstandingServiceMock.Object);
 
         // Act
         var result = await service.DeleteAsync(productId);
@@ -477,7 +493,8 @@ public class ProductServiceTests
     {
         // Arrange
         await using var db = _fixture.CreateDbContext();
-        var service = new ProductService(db);
+        var queryUnderstandingServiceMock = new Mock<IProductQueryUnderstandingService>();
+        var service = new ProductService(db, queryUnderstandingServiceMock.Object);
         var nonExistentId = Guid.NewGuid();
 
         // Act
@@ -508,7 +525,8 @@ public class ProductServiceTests
         });
         await db.SaveChangesAsync();
 
-        var service = new ProductService(db);
+        var queryUnderstandingServiceMock = new Mock<IProductQueryUnderstandingService>();
+        var service = new ProductService(db, queryUnderstandingServiceMock.Object);
 
         // Act
         var result = await service.DeleteAsync(productId);
@@ -543,7 +561,8 @@ public class ProductServiceTests
         });
         await db.SaveChangesAsync();
 
-        var service = new ProductService(db);
+        var queryUnderstandingServiceMock = new Mock<IProductQueryUnderstandingService>();
+        var service = new ProductService(db, queryUnderstandingServiceMock.Object);
         var updateDto = new CreateProductDto
         {
             Name = "Updated Name",
@@ -604,7 +623,8 @@ public class ProductServiceTests
         );
         await db.SaveChangesAsync();
 
-        var service = new ProductService(db);
+        var queryUnderstandingServiceMock = new Mock<IProductQueryUnderstandingService>();
+        var service = new ProductService(db, queryUnderstandingServiceMock.Object);
         var updateDto = new CreateProductDto
         {
             Name = "gel nimbus",
