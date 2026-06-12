@@ -14,9 +14,17 @@ public class ProductService : IProductService
     private const int MinNameLength = 3;
     private const int MaxNameLength = 200;
     private const string DuplicateProductMessage = "A product with the same name, brand, category, price, and sizes already exists.";
+    private const int DefaultNaturalLanguageResultLimit = 30;
+    private const int MaxNaturalLanguageResultLimit = 100;
 
     private readonly AppDbContext _db;
-    public ProductService(AppDbContext db) => _db = db;
+    private readonly IProductQueryUnderstandingService _queryUnderstandingService;
+
+    public ProductService(AppDbContext db, IProductQueryUnderstandingService queryUnderstandingService)
+    {
+        _db = db;
+        _queryUnderstandingService = queryUnderstandingService;
+    }
 
     public async Task<IEnumerable<ProductDto>> GetAllAsync(string? brand, string? size, string? category, decimal? minPrice, decimal? maxPrice)
     {
@@ -56,6 +64,69 @@ public class ProductService : IProductService
                 Category = x.Category
             })
             .ToListAsync();
+    }
+
+    public async Task<IEnumerable<ProductDto>> SearchNaturalLanguageAsync(string query, string? model = null, int? limit = null)
+    {
+        var cleanQuery = query?.Trim() ?? string.Empty;
+        if (cleanQuery.Length == 0) return [];
+
+        var parsed = await _queryUnderstandingService.ParseAsync(cleanQuery, model);
+        var queryable = _db.Products.Where(x => x.IsActive).AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(parsed.Brand))
+            queryable = queryable.Where(x => x.Brand.ToLower().Contains(parsed.Brand));
+
+        if (!string.IsNullOrWhiteSpace(parsed.Category))
+            queryable = queryable.Where(x => x.Category.ToLower().Contains(parsed.Category));
+
+        if (!string.IsNullOrWhiteSpace(parsed.Size))
+            queryable = queryable.Where(x => x.SizesCsv.ToLower().Contains(parsed.Size));
+
+        if (parsed.MinPrice.HasValue)
+            queryable = queryable.Where(x => x.Price >= parsed.MinPrice.Value);
+
+        if (parsed.MaxPrice.HasValue)
+            queryable = queryable.Where(x => x.Price <= parsed.MaxPrice.Value);
+
+        var candidates = await queryable
+            .Select(x => new ProductDto
+            {
+                Id = x.Id,
+                Name = x.Name,
+                Brand = x.Brand,
+                Description = x.Description,
+                Price = x.Price,
+                SizesCsv = x.SizesCsv,
+                StockQty = x.StockQty,
+                ImageUrl = x.ImageUrl,
+                Category = x.Category
+            })
+            .ToListAsync();
+
+        var effectiveLimit = Math.Clamp(limit ?? DefaultNaturalLanguageResultLimit, 1, MaxNaturalLanguageResultLimit);
+        if (parsed.Keywords.Count == 0)
+            return candidates
+                .OrderBy(x => x.Price)
+                .Take(effectiveLimit)
+                .ToList();
+
+        var ranked = candidates
+            .Select(p => new { Product = p, Score = ScoreProduct(p, parsed.Keywords) })
+            .Where(x => x.Score > 0)
+            .OrderByDescending(x => x.Score)
+            .ThenBy(x => x.Product.Price)
+            .Select(x => x.Product)
+            .Take(effectiveLimit)
+            .ToList();
+
+        if (ranked.Count > 0)
+            return ranked;
+
+        return candidates
+            .OrderBy(x => x.Price)
+            .Take(effectiveLimit)
+            .ToList();
     }
 
     public async Task<ProductDto?> GetByIdAsync(Guid id)
@@ -163,5 +234,24 @@ public class ProductService : IProductService
         product.IsActive = false;
         await _db.SaveChangesAsync();
         return true;
+    }
+
+    private static int ScoreProduct(ProductDto product, IEnumerable<string> keywords)
+    {
+        var name = product.Name.ToLowerInvariant();
+        var brand = product.Brand.ToLowerInvariant();
+        var category = product.Category.ToLowerInvariant();
+        var description = product.Description.ToLowerInvariant();
+
+        var score = 0;
+        foreach (var keyword in keywords)
+        {
+            if (name.Contains(keyword)) score += 5;
+            if (brand.Contains(keyword)) score += 4;
+            if (category.Contains(keyword)) score += 3;
+            if (description.Contains(keyword)) score += 2;
+        }
+
+        return score;
     }
 }

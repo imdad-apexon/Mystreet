@@ -6,6 +6,10 @@ export const productService = {
     const res = await api.get<Product[]>('/products', { params });
     return res.data;
   },
+  searchAi: async (params: { query: string; model?: string; limit?: number }) => {
+    const res = await api.get<Product[]>('/products/ai-search', { params });
+    return res.data;
+  },
   getById: async (id: string) => {
     const res = await api.get<Product>(`/products/${id}`);
     return res.data;

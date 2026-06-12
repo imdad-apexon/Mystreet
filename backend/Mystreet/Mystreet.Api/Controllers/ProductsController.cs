@@ -17,6 +17,15 @@ public class ProductsController : ControllerBase
     public async Task<IActionResult> GetAll([FromQuery] string? brand, [FromQuery] string? size, [FromQuery] string? category, [FromQuery] decimal? minPrice, [FromQuery] decimal? maxPrice)
         => Ok(await _service.GetAllAsync(brand, size, category, minPrice, maxPrice));
 
+    [HttpGet("ai-search")]
+    public async Task<IActionResult> SearchAi([FromQuery] string query, [FromQuery] string? model, [FromQuery] int? limit)
+    {
+        if (string.IsNullOrWhiteSpace(query))
+            return BadRequest("query is required.");
+
+        return Ok(await _service.SearchNaturalLanguageAsync(query, model, limit));
+    }
+
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(Guid id)
     {
