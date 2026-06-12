@@ -2,6 +2,8 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Mystreet.Application.DTOs.Assistant;
+using Mystreet.Application.DTOs.Products;
 using Mystreet.Application.Interfaces;
 using Mystreet.Application.Services;
 using Mystreet.Infrastructure.Auth;
@@ -19,9 +21,14 @@ builder.Services.AddDbContext<AppDbContext>(opt =>
     opt.UseInMemoryDatabase("MystreetDb"));
 
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("Jwt"));
+builder.Services.Configure<OllamaOptions>(builder.Configuration.GetSection("Ollama"));
+builder.Services.Configure<ShoppingAssistantOptions>(builder.Configuration.GetSection("ShoppingAssistant"));
+builder.Services.AddHttpClient();
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<IProductQueryUnderstandingService, OllamaProductQueryUnderstandingService>();
+builder.Services.AddScoped<IShoppingAssistantService, ShoppingAssistantService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 
 var jwt = builder.Configuration.GetSection("Jwt").Get<JwtOptions>()!;

@@ -1,15 +1,19 @@
 import { useEffect, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { productService } from '../services/productService';
 import type { Product } from '../types/product';
 import ProductCard from '../components/ProductCard';
 
 export default function HomePage() {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [products, setProducts] = useState<Product[]>([]);
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [brand, setBrand] = useState('');
   const [category, setCategory] = useState('');
   const [size, setSize] = useState('');
   const [loading, setLoading] = useState(false);
+  const aiQuery = searchParams.get('ai')?.trim() ?? '';
 
   const loadProducts = async (filters?: { brand?: string; category?: string; size?: string }) => {
     const selectedBrand = filters?.brand ?? brand;
@@ -33,16 +37,39 @@ export default function HomePage() {
     await loadProducts({ brand: '', category: '', size: '' });
   };
 
+  const clearAiSearch = () => {
+    navigate('/products');
+  };
+
   useEffect(() => {
     document.title = 'MyStreet - Products';
     const init = async () => {
       const all = await productService.getAll();
       setAllProducts(all);
-      await loadProducts();
     };
 
     void init();
   }, []);
+
+  useEffect(() => {
+    const load = async () => {
+      setLoading(true);
+      if (aiQuery) {
+        const aiData = await productService.searchAi({ query: aiQuery, limit: 30 });
+        setProducts(aiData);
+      } else {
+        const data = await productService.getAll({
+          brand: brand || undefined,
+          category: category || undefined,
+          size: size || undefined
+        });
+        setProducts(data);
+      }
+      setLoading(false);
+    };
+
+    void load();
+  }, [aiQuery]);
 
   const brandOptions = [...new Set(allProducts.map(p => p.brand).filter(Boolean))].sort();
   const categoryOptions = [...new Set(allProducts.map(p => p.category).filter(Boolean))].sort();
@@ -51,6 +78,12 @@ export default function HomePage() {
   return (
     <div className="container">
       <h1>Products</h1>
+      {!!aiQuery && (
+        <div className="note">
+          AI results for: <strong>{aiQuery}</strong>{' '}
+          <button className="filter-btn filter-btn--secondary" onClick={clearAiSearch}>Use Filters</button>
+        </div>
+      )}
       <div className="filters">
         <select
           className="filter-input"
