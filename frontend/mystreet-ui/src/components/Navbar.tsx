@@ -100,6 +100,11 @@ export default function Navbar() {
           </NavLink>
         )}
         {isAdmin && (
+          <NavLink to="/admin/dashboard" className={navClass}>
+            Dashboard
+          </NavLink>
+        )}
+        {isAdmin && (
           <NavLink to="/admin/products" className={navClass}>
             Admin
           </NavLink>

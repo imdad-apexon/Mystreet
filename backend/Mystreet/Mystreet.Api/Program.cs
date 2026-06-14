@@ -30,6 +30,7 @@ builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IProductQueryUnderstandingService, OllamaProductQueryUnderstandingService>();
 builder.Services.AddScoped<IShoppingAssistantService, ShoppingAssistantService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<IAdminDashboardService, AdminDashboardService>();
 
 var jwt = builder.Configuration.GetSection("Jwt").Get<JwtOptions>()!;
 var key = Encoding.UTF8.GetBytes(jwt.Key);
