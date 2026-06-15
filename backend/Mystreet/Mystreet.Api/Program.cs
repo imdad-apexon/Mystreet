@@ -18,7 +18,7 @@ builder.Services.AddSwaggerGen();
 //builder.Services.AddDbContext<AppDbContext>(opt =>
 //    opt.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddDbContext<AppDbContext>(opt =>
-    opt.UseInMemoryDatabase("MystreetDb"));
+    opt.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("Jwt"));
 builder.Services.Configure<OllamaOptions>(builder.Configuration.GetSection("Ollama"));
