@@ -10,7 +10,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
-   useEffect(() => {
+  useEffect(() => {
     document.title = 'MyStreet - Login';
   }, []);
 
@@ -27,18 +27,59 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="container form-page">
-      <h1>Login</h1>
-      <div className="card form-card">
-        <form onSubmit={submit}>
-          <input placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} />
-          <input placeholder="Password" type="password" value={password} onChange={e => setPassword(e.target.value)} />
-          {error && <p className="error">{error}</p>}
-          <button type="submit">Login</button>
-        </form>
+    <div className="container form-page auth-page">
+      <div className="auth-layout">
+        <aside className="auth-hero" aria-hidden="true">
+          <p className="auth-hero__eyebrow">MyStreet</p>
+          <h2>Shop smarter, faster, and with confidence.</h2>
+          <p>
+            Sign in to save your cart, track orders, and get personalized product recommendations.
+          </p>
+          <ul className="auth-hero__points">
+            <li>Real-time stock updates</li>
+            <li>Faster checkout experience</li>
+            <li>Order history in one place</li>
+          </ul>
+        </aside>
+        <div className="card form-card auth-card">
+          <header className="auth-page__header">
+            <h1>Welcome back</h1>
+            <p>Login to continue to your MyStreet account.</p>
+          </header>
+          <form className="auth-form" onSubmit={submit}>
+            <div className="form-group">
+              <label htmlFor="login-email">Email</label>
+              <input
+                id="login-email"
+                type="email"
+                placeholder="you@example.com"
+                autoComplete="email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+              />
+            </div>
+            <div className="form-group">
+              <label htmlFor="login-password">Password</label>
+              <input
+                id="login-password"
+                placeholder="Enter your password"
+                type="password"
+                autoComplete="current-password"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+              />
+            </div>
+            {error && <p className="error">{error}</p>}
+            <button className="auth-submit" type="submit">Login</button>
+          </form>
+          <div className="auth-links">
+            <Link to="/products" className="auth-links__primary">Browse products</Link>
+            <p className="auth-switch">
+              New to MyStreet? <Link to="/register">Create account</Link>
+            </p>
+          </div>
+        </div>
       </div>
-      <p><Link to="/products">Browse products</Link></p>
-      <p><Link to="/register">Create account</Link></p>
     </div>
   );
 }
